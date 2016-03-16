@@ -386,7 +386,7 @@ def entities(request):
         project = request.POST['project']
         locale = request.POST['locale']
         paths = request.POST.getlist('paths[]')
-        limit = int(request.POST.get('limit', 40))
+        limit = int(request.POST.get('limit', 50))
     except (MultiValueDictKeyError, ValueError) as e:
         return HttpResponseBadRequest('Bad Request: {error}'.format(error=e))
 
