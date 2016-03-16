@@ -522,7 +522,7 @@ def delete_translation(request):
 
     return JsonResponse({
         'stats': TranslatedResource.objects.stats(paths, translation.locale)
-        })
+    })
 
 
 @anonymous_csrf_exempt
@@ -1077,4 +1077,3 @@ def request_projects(request, locale):
 def get_csrf(request):
     """Get CSRF token."""
     return HttpResponse(request.csrf_token)
-

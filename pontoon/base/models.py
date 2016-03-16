@@ -154,13 +154,13 @@ class AggregatedStats(models.Model):
 
     @property
     def stats(self):
-        """JSONable structure with stats of instance."""
+        """JSONable structure with stats of the instance."""
         return {
-                'all': self.total_strings,
-                'approved': self.approved_strings,
-                'translated': self.translated_strings,
-                'fuzzy': self.fuzzy_strings,
-               }
+            'all': self.total_strings,
+            'approved': self.approved_strings,
+            'translated': self.translated_strings,
+            'fuzzy': self.fuzzy_strings,
+        }
 
     def adjust_stats(self, total_strings_diff, approved_strings_diff,
                      fuzzy_strings_diff, translated_strings_diff):
