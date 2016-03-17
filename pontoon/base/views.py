@@ -402,7 +402,7 @@ def entities(request):
         return JsonResponse({
             'entities': Entity.map_entities(locale, entities),
             'has_next': False,
-            'stats': TranslatedResource.objects.stats(paths, locale),
+            'stats': TranslatedResource.objects.stats(project, paths, locale),
         }, safe=False)
 
     # In out-of-context view, paginate entities
@@ -423,7 +423,7 @@ def entities(request):
         return JsonResponse({
             'entities': Entity.map_entities(locale, entities_page.object_list),
             'has_next': entities_page.has_next(),
-            'stats': TranslatedResource.objects.stats(paths, locale),
+            'stats': TranslatedResource.objects.stats(project, paths, locale),
         }, safe=False)
 
 
@@ -517,7 +517,7 @@ def delete_translation(request):
     translation.delete()
 
     return JsonResponse({
-        'stats': TranslatedResource.objects.stats(paths, translation.locale)
+        'stats': TranslatedResource.objects.stats(translation.entity.resource.project, paths, translation.locale)
     })
 
 
@@ -622,7 +622,7 @@ def update_translation(request):
                 return JsonResponse({
                     'type': 'updated',
                     'translation': t.serialize(),
-                    'stats': TranslatedResource.objects.stats(paths, l),
+                    'stats': TranslatedResource.objects.stats(e.resource.project, paths, l),
                 })
 
             # If added by non-privileged user, unfuzzy it
@@ -646,7 +646,7 @@ def update_translation(request):
                     return JsonResponse({
                         'type': 'updated',
                         'translation': t.serialize(),
-                        'stats': TranslatedResource.objects.stats(paths, l),
+                        'stats': TranslatedResource.objects.stats(e.resource.project, paths, l),
                     })
 
                 return HttpResponse("Same translation already exists.")
@@ -683,7 +683,7 @@ def update_translation(request):
             return JsonResponse({
                 'type': 'added',
                 'translation': active.serialize(),
-                'stats': TranslatedResource.objects.stats(paths, l)
+                'stats': TranslatedResource.objects.stats(e.resource.project, paths, l)
             })
 
     # No translations saved yet
@@ -707,7 +707,7 @@ def update_translation(request):
         return JsonResponse({
             'type': 'saved',
             'translation': t.serialize(),
-            'stats': TranslatedResource.objects.resource_locale_path(paths, l)
+            'stats': TranslatedResource.objects.stats(e.resource.project, paths, l)
         })
 
 

@@ -1313,11 +1313,11 @@ class TranslatedResourceQuerySet(models.QuerySet):
 
         instance.save()
 
-    def stats(self, paths, locale):
+    def stats(self, project, paths, locale):
         """
         Returns statistics for the given paths and locale.
         """
-        return self.get(locale=locale, resource__path__in=paths).stats
+        return self.get(resource__project=project, resource__path__in=paths, locale=locale).stats
 
 
 class TranslatedResource(AggregatedStats):
