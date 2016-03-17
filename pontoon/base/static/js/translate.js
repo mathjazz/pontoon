@@ -13,10 +13,6 @@ var Pontoon = (function (my) {
        return $('#search').val();
      },
 
-     getKeyword: function() {
-       return $('input[name=keyword]').val();
-     },
-
      renderEntity: function (index, entity) {
        var self = this,
            status = self.getEntityStatus(entity),
@@ -1161,7 +1157,7 @@ var Pontoon = (function (my) {
           .find('.untranslated p').html(untranslated);
 
       // Update parts menu
-      if (all && !this.project.search) {
+      if (all) {
         var parts = $('.project .menu li .name[data-slug=' + this.project.slug + ']')
                       .data('parts')[this.locale.code],
             path = this.entities[0].path;
@@ -1428,8 +1424,6 @@ var Pontoon = (function (my) {
     updatePartSelector: function (title) {
       $('.part .selector')
         .attr('title', title)
-        .find('.icon')
-          .addClass('fa-file-o').removeClass('fa-search').end()
         .find('.title')
           // Only show filename instead of full path
           .html(title.replace(/^.*[\\\/]/, ''));
@@ -1479,9 +1473,6 @@ var Pontoon = (function (my) {
       if (!part.length) {
         this.updatePartSelector(parts[0].title);
       }
-
-      // Switch to Resources tab
-      $('.part .menu nav a[href=#resources]').click();
     },
 
 
@@ -1594,7 +1585,7 @@ var Pontoon = (function (my) {
       $('.part .selector').click(function () {
         var locale = self.getSelectedLocale(),
             parts = self.getProjectData('parts')[locale],
-            menu = $(this).siblings('.menu').find('.resources ul'),
+            menu = $(this).siblings('.menu').find('ul'),
             project = self.getSelectedProject(),
             currentProject = self.getProjectData('slug') === self.project.slug,
             currentLocale = self.getLocaleData('code') === self.locale.code;
@@ -1618,18 +1609,10 @@ var Pontoon = (function (my) {
         });
       });
 
-      // Do not hide the parts menu on click inside
-      $('.part .menu').click(function(e) {
-        e.stopPropagation();
-      });
-
       // Parts menu handler
-      $('.part .menu').on('click', '.resources li:not(".no-match")', function (e) {
+      $('.part .menu').on('click', 'li:not(".no-match")', function (e) {
         var title = $(this).find('span:first').html();
         self.updatePartSelector(title);
-
-        // Hide the parts menu
-        $('body').click();
       });
 
       // Open selected project (part) and locale combination
@@ -2115,8 +2098,7 @@ var Pontoon = (function (my) {
         slug: self.getProjectData('slug'),
         info: self.getProjectData('info'),
         width: self.getProjectWidth(),
-        links: self.getProjectData('links') === 'True' ? true : false,
-        search: window.location.search
+        links: self.getProjectData('links') === 'True' ? true : false
       };
 
       this.part = this.getSelectedPart();
@@ -2199,7 +2181,7 @@ var Pontoon = (function (my) {
     requiresInplaceEditor: function() {
       var self = this,
           part = self.currentPart;
-      return part && part.url && !window.location.search;
+      return part && part.url;
     },
 
     /*
@@ -2223,14 +2205,6 @@ var Pontoon = (function (my) {
 
       if (state.filterType) {
         params['filterType'] = state.filterType;
-      }
-
-      if (!state.paths) {
-        params['search'] = state.search.substring(1);
-      }
-
-      if (state.keyword) {
-        params['keyword'] = state.keyword;
       }
 
       if (self.requiresInplaceEditor()) {
@@ -2407,13 +2381,9 @@ var Pontoon = (function (my) {
       var self = this,
           project = this.getSelectedProject(),
           locale = this.getSelectedLocale(),
-          // Empty if no path defined (i.e. search)
           paths = requestedPart = this.getSelectedPart(),
-          search = window.location.search,
-          postfix = 'search' + '/' + search,
           filterSearch = self.getFilterSearch(),
           filterType = self.getFilterType(),
-          keyword = self.getKeyword(),
           hasNext = typeof hasNext == 'undefined' ? true : hasNext;
 
       // Fallback to first available part if no matches found (mistyped URL)
@@ -2421,20 +2391,17 @@ var Pontoon = (function (my) {
         this.updateCurrentPart();
         paths = this.currentPart.title;
         this.updatePartSelector(paths);
-        postfix = paths + '/';
       }
 
       var state = {
         project: project,
         locale: locale,
         paths: paths,
-        search: search,
         filterSearch: filterSearch,
         filterType: filterType,
-        keyword: keyword,
         hasNext: hasNext,
       },
-      url = '/' + locale + '/' + project + '/' + postfix;
+      url = '/' + locale + '/' + project + '/' + paths + '/';
 
       // Keep homepage URL
       if (window.location.pathname === '/' && project === 'pontoon-intro') {

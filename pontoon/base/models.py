@@ -1027,7 +1027,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             }
 
     @classmethod
-    def for_project_locale(self, project, locale, paths=None, search=None, exclude=None,
+    def for_project_locale(self, project, locale, paths=None, exclude=None,
         filter_type=None, filter_search=None):
         """Get project entities with locale translations."""
         if filter_type and filter_type != 'all':
@@ -1064,28 +1064,8 @@ class Entity(DirtyFieldsMixin, models.Model):
             obsolete=False
         )
 
-        # Filter by search parameters
-        if search:
-            keyword = search.get('keyword', None)
-            i = '' if search.get('casesensitive', None) else 'i'
-            entity_query = Q()  # Empty object
-
-            if search.get('sources', None):
-                entity_query |= Q(**{'string__%scontains' % i: keyword}) | Q(**{'string_plural__%scontains' % i: keyword})
-
-            if search.get('translations', None):
-                entity_query |= Q(**{'translation__string__%scontains' % i: keyword})
-
-            if search.get('comments', None):
-                entity_query |= Q(**{'comment__%scontains' % i: keyword})
-
-            if search.get('keys', None):
-                entity_query |= Q(**{'key__%scontains' % i: keyword})
-
-            entities = entities.filter(entity_query).distinct()
-
         # Filter by path
-        elif paths:
+        if paths:
             try:
                 subpage = Subpage.objects.get(project=project, name__in=paths)
                 paths = subpage.resources.values_list("path")
@@ -1094,6 +1074,7 @@ class Entity(DirtyFieldsMixin, models.Model):
 
             entities = entities.filter(resource__path__in=paths)
 
+        # Filter by search parameters
         if filter_search:
             search_query = Q(**{'string__icontains': filter_search}) | Q(**{'string_plural__icontains': filter_search})
             search_query |= Q(**{'translation__string__icontains': filter_search})

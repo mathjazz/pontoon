@@ -236,12 +236,6 @@ body > header .locale.select {
   top: 60px;
 }
 
-.part .selector .icon {
-  float: left;
-  margin: 1px 10px 0 0;
-  color: #7BC876;
-}
-
 .project.select .menu,
 .part.select .menu {
   display: none;
@@ -251,12 +245,6 @@ body > header .locale.select {
 
 .part.select .menu {
   width: 600px;
-}
-
-.part .menu section {
-  border: 1px solid #5E6475;
-  margin-top: -1px;
-  padding: 20px 10px 10px;
 }
 
 .locale.select .menu {

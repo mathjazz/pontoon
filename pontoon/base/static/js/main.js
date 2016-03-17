@@ -664,11 +664,6 @@ $(function() {
       var menu = $('.menu:visible'),
           hovered = menu.find('li.hover');
 
-      // Skip for the Search project menu
-      if (menu.is('.search-project:visible').length) {
-        return;
-      }
-
       // Skip for the tabs
       if (menu.is('.tabs')) {
         return;

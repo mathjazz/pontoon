@@ -393,16 +393,12 @@ def entities(request):
     project = get_object_or_404(Project, slug=project)
     locale = get_object_or_404(Locale, code__iexact=locale)
 
-    search = None
-    if request.POST.get('search', None):
-        search = {k: v[0] for k, v in parse_qs(request.POST.get('search', '')).items()}
-
     filter_type = request.POST.get('filterType', '')
     filter_search = request.POST.get('filterSearch', '')
 
     # In-context view requires loading of all entities
     if request.POST.get('inplaceEditor', None):
-        entities = Entity.for_project_locale(project, locale, paths, search)
+        entities = Entity.for_project_locale(project, locale, paths)
         return JsonResponse({
             'entities': Entity.map_entities(locale, entities),
             'has_next': False,
@@ -412,7 +408,7 @@ def entities(request):
     # In out-of-context view, paginate entities
     else:
         exclude_entities = request.POST.getlist('excludeEntities[]', [])
-        entities = Entity.for_project_locale(project, locale, paths, search, exclude_entities,
+        entities = Entity.for_project_locale(project, locale, paths, exclude_entities,
             filter_type, filter_search)
         paginator = Paginator(entities, limit)
 
