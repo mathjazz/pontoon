@@ -165,7 +165,7 @@ class LocalePartsTests(TestCase):
         """
         details = self.locale.parts_stats(self.project)
 
-        assert_equal(len(details), 1)
+        assert_equal(len(details), 2)
         assert_equal(details[0]['title'], '/main/path.po')
         assert_equal(details[0]['translated_strings'], 0)
 
@@ -188,7 +188,7 @@ class LocalePartsTests(TestCase):
         assert_equal(details[0]['translated_strings'], 0)
         assert_equal(details[1]['title'], '/other/path.po')
         assert_equal(details[1]['translated_strings'], 0)
-        assert_equal(len(details_other), 1)
+        assert_equal(len(details_other), 2)
         assert_equal(details_other[0]['title'], '/other/path.po')
         assert_equal(details_other[0]['translated_strings'], 0)
 
