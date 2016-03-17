@@ -1107,16 +1107,16 @@ var Pontoon = (function (my) {
     updateProgress: function () {
       var self = this,
           stats = self.stats,
-          all = stats.all,
+          total = stats.total,
           translated = stats.translated,
           approved = stats.approved,
           fuzzy = stats.fuzzy,
-          untranslated = all - translated - approved - fuzzy,
+          untranslated = total - translated - approved - fuzzy,
           fraction = {
-            approved: all ? approved / all : 0,
-            translated: all ? translated / all : 0,
-            fuzzy: all ? fuzzy / all : 0,
-            untranslated: all ? untranslated / all : 0
+            approved: total ? approved / total : 0,
+            translated: total ? translated / total : 0,
+            fuzzy: total ? fuzzy / total : 0,
+            untranslated: total ? untranslated / total : 0
           },
           number = Math.floor(fraction.approved * 100);
 
@@ -1149,7 +1149,7 @@ var Pontoon = (function (my) {
       $('#progress .number').html(number);
 
       // Update details in the menu
-      $('#progress .menu').find('header span').html(all).end()
+      $('#progress .menu').find('header span').html(total).end()
         .find('.details')
           .find('.approved p').html(approved).end()
           .find('.translated p').html(translated).end()
@@ -1157,7 +1157,7 @@ var Pontoon = (function (my) {
           .find('.untranslated p').html(untranslated);
 
       // Update parts menu
-      if (all) {
+      if (total) {
         var parts = $('.project .menu li .name[data-slug=' + this.project.slug + ']')
                       .data('parts')[this.locale.code],
             path = this.entities[0].path;
@@ -1165,7 +1165,6 @@ var Pontoon = (function (my) {
         $(parts).each(function() {
           if (this.resource__path === path) {
             this.approved_strings = approved;
-            this.translated_strings = translated;
           }
         });
       }
@@ -1591,7 +1590,7 @@ var Pontoon = (function (my) {
             currentLocale = self.getLocaleData('code') === self.locale.code;
 
         menu.find('li:not(".no-match")').remove();
-        $(parts).each(function() {
+        $(parts).each(function(i) {
           var cls = '',
               title = this.title,
               percent = '0%';
@@ -1604,13 +1603,22 @@ var Pontoon = (function (my) {
             percent = Math.floor(this.approved_strings / this.resource__total_strings * 100) + '%';
           }
 
-          menu.append('<li' + cls + '><span>' + title + '</span>' +
-            '<span>' + percent + '</span></li>');
+          if (i < parts.length - 1) {
+            menu.append('<li' + cls + '>' +
+              '<span>' + title + '</span>' +
+              '<span>' + percent + '</span>' +
+            '</li>');
+
+          } else {
+            menu.parents('.menu').find('.static-links .all-resources')
+              .find('.percent').html(percent).end()
+              .toggleClass('current', self.part === 'All Resources');
+          }
         });
       });
 
       // Parts menu handler
-      $('.part .menu').on('click', 'li:not(".no-match")', function (e) {
+      $('.part .menu').on('click', 'li:not(".no-match"), .static-links .all-resources', function (e) {
         var title = $(this).find('span:first').html();
         self.updatePartSelector(title);
       });
@@ -2184,6 +2192,20 @@ var Pontoon = (function (my) {
       return part && part.url;
     },
 
+
+    /*
+     * Get paths for the current part
+     */
+    getCurrentPaths: function() {
+      var paths = this.currentPart.resource__path;
+      if (paths.constructor === Array) {
+        return paths;
+      }
+
+      return [paths];
+    },
+
+
     /*
      * Load entities, store data, prepare UI
      */
@@ -2194,7 +2216,7 @@ var Pontoon = (function (my) {
           params = {
               'project': state.project,
               'locale': state.locale,
-              'paths': [state.paths],
+              'paths': self.getCurrentPaths()
           }
           deferred = $.Deferred();
       $.extend(params, opts);
@@ -2387,11 +2409,9 @@ var Pontoon = (function (my) {
           hasNext = typeof hasNext == 'undefined' ? true : hasNext;
 
       // Fallback to first available part if no matches found (mistyped URL)
-      if (requestedPart) {
-        this.updateCurrentPart();
-        paths = this.currentPart.title;
-        this.updatePartSelector(paths);
-      }
+      this.updateCurrentPart();
+      paths = this.currentPart.title;
+      this.updatePartSelector(paths);
 
       var state = {
         project: project,

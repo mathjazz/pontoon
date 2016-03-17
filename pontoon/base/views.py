@@ -9,7 +9,6 @@ import urllib
 
 from collections import defaultdict
 from dateutil.relativedelta import relativedelta
-from urlparse import parse_qs
 
 from django.conf import settings
 from django.contrib import messages

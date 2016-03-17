@@ -196,6 +196,10 @@ body > header > .container {
   text-align: left;
 }
 
+.search-wrapper {
+  margin-bottom: 5px;
+}
+
 .select .menu ul li {
   cursor: pointer;
 }
@@ -261,7 +265,20 @@ body > header .locale.select {
   max-height: 318px;
 }
 
-.menu ul li.current {
+.menu .static-links {
+  border-top: 1px solid #5E6475;
+  font-weight: 300;
+  margin-top: 5px;
+  padding-top: 5px;
+}
+
+.menu .static-links div {
+  cursor: pointer;
+  padding: 2px 4px;
+}
+
+.menu ul li.current,
+.menu .static-links .all-resources.current {
   color: #7BC876;
 }
 
@@ -271,7 +288,8 @@ body > header .locale.select {
   white-space: nowrap;
 }
 
-.part.select .menu ul li > span:nth-child(2) {
+.part.select .menu ul li > span:nth-child(2),
+.menu .static-links .percent {
   color: #7BC876;
   float: right;
 }

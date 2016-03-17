@@ -152,16 +152,6 @@ class AggregatedStats(models.Model):
     class Meta:
         abstract = True
 
-    @property
-    def stats(self):
-        """JSONable structure with stats of the instance."""
-        return {
-            'all': self.total_strings,
-            'approved': self.approved_strings,
-            'translated': self.translated_strings,
-            'fuzzy': self.fuzzy_strings,
-        }
-
     def adjust_stats(self, total_strings_diff, approved_strings_diff,
                      fuzzy_strings_diff, translated_strings_diff):
         self.total_strings = F('total_strings') + total_strings_diff
@@ -378,7 +368,24 @@ class Locale(AggregatedStats):
                     )
                 )
 
-        return list(details)
+        all_resources = ProjectLocale.objects.get(project=project, locale=self)
+        all_paths = (
+            TranslatedResource.objects
+            .filter(resource__project=project, locale=self)
+            .values_list("resource__path", flat=True)
+        )
+
+        details_list = list(details)
+        details_list.append({
+            'title': 'All Resources',
+            'resource__path': list(all_paths),
+            'resource__total_strings': all_resources.total_strings,
+            'fuzzy_strings': all_resources.fuzzy_strings,
+            'translated_strings': all_resources.translated_strings,
+            'approved_strings': all_resources.approved_strings,
+        })
+
+        return details_list
 
 
 class ProjectQuerySet(models.QuerySet):
@@ -1298,13 +1305,16 @@ class TranslationMemoryEntry(models.Model):
 
 
 class TranslatedResourceQuerySet(models.QuerySet):
-    def aggregate_stats(self, instance):
-        aggregated_stats = self.aggregate(
+    def aggregated_stats(self):
+        return self.aggregate(
             total=Sum('resource__total_strings'),
             approved=Sum('approved_strings'),
             translated=Sum('translated_strings'),
             fuzzy=Sum('fuzzy_strings')
         )
+
+    def aggregate_stats(self, instance):
+        aggregated_stats = self.aggregated_stats()
 
         instance.total_strings = aggregated_stats['total'] or 0
         instance.approved_strings = aggregated_stats['approved'] or 0
@@ -1315,9 +1325,12 @@ class TranslatedResourceQuerySet(models.QuerySet):
 
     def stats(self, project, paths, locale):
         """
-        Returns statistics for the given paths and locale.
+        Returns statistics for the given project, paths and locale.
         """
-        return self.get(resource__project=project, resource__path__in=paths, locale=locale).stats
+        return self.filter(
+            resource__project=project,
+            resource__path__in=paths,
+            locale=locale).aggregated_stats()
 
 
 class TranslatedResource(AggregatedStats):

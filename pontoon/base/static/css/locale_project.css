@@ -9,3 +9,7 @@ body > .container {
 .part.select .menu ul li .name {
   width: 519px; /* Instead of 520px; because of padding */
 }
+
+.menu .static-links {
+  display: none;
+}

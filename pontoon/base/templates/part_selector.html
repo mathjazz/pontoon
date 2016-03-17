@@ -26,22 +26,31 @@
     <ul>
       {% if not part %}
       {% for p in parts %}
-        {% set link = url('pontoon.translate', locale.code, project.slug, p.title) %}
-        <li class="clearfix">
-          <span class="name">
-            <a href="{{ link }}" class="clearfix">
-              {{ p.title }}
-            </a>
-          </span>
+        {% if not loop.last %}
+          {% set link = url('pontoon.translate', locale.code, project.slug, p.title) %}
+          <li class="clearfix">
+            <span class="name">
+              <a href="{{ link }}" class="clearfix">
+                {{ p.title }}
+              </a>
+            </span>
 
-          {{ LatestActivity.span(p.latest_activity) }}
+            {{ LatestActivity.span(p.latest_activity) }}
 
-          {{ ProgressChart.span(p.chart, link) }}
-        </li>
+            {{ ProgressChart.span(p.chart, link) }}
+          </li>
+        {% endif %}
       {% endfor %}
       {% endif %}
 
       <li class="no-match">No results</li>
     </ul>
+
+    <div class="static-links">
+      <div class="all-resources">
+        <span class="title">All Resources</span>
+        <span class="percent"></span>
+      </div>
+    </div>
   </div>
 </div>

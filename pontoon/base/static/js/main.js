@@ -436,8 +436,8 @@ $(function() {
   });
 
   // Menu hover
-  $('.menu').on('mouseenter', 'li', function () {
-    $('.menu li.hover').removeClass('hover');
+  $('.menu').on('mouseenter', 'li, .static-links div', function () {
+    $('.menu li.hover, .static-links div').removeClass('hover');
     $(this).toggleClass('hover');
   });
 
