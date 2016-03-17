@@ -1753,6 +1753,7 @@ var Pontoon = (function (my) {
         $('.notification').css('opacity', 100);
       }
 
+      this.setMainLoading(false);
       this.toggleInplaceElements();
       this.resetColumnsWidth();
       this.updateMainMenu();
@@ -2266,8 +2267,6 @@ var Pontoon = (function (my) {
         self.withoutInPlace();
         $("#entitylist .wrapper").scroll($.proxy(self.onSidebarScroll, this));
       }
-
-      self.setMainLoading(false);
     },
 
 
