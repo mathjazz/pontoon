@@ -524,7 +524,8 @@ var Pontoon = (function (my) {
      * Filter list of entities by given type
      */
     filterEntities: function (type) {
-      var list = $("#entitylist"),
+      var self = this,
+          list = $("#entitylist"),
           title = $('#filter .menu li.' + type).text();
 
       list.find('.entity').addClass('limited').show();
@@ -572,21 +573,21 @@ var Pontoon = (function (my) {
 
       }
 
-      this.searchEntities();
+      self.searchEntities();
 
       $('#search').attr('placeholder', 'Search ' + title);
       $('#filter .title').html(title);
       $('#filter').data('current-filter', type);
       $('#filter .button').attr('class', 'button selector ' + type);
 
-      this.pushState(true);
-      this.setNoMatch(false);
+      self.hasNext = true;
+      self.setNoMatch(false);
 
-      if (this.requiresInplaceEditor()) {
-        this.setSidebarLoading(false);
+      if (self.requiresInplaceEditor()) {
+        self.setSidebarLoading(false);
       } else {
-        this.loadNextEntities().always(function(){
-          this.setSidebarLoading(false);
+        self.loadNextEntities().always(function(){
+          self.setSidebarLoading(false);
         });
       }
     },
@@ -629,7 +630,7 @@ var Pontoon = (function (my) {
       // Search entities
       $('#search').off('keyup').on('keyup', function (e) {
         delay(function () {
-          self.pushState(true);
+          self.hasNext = true;
           self.searchEntities();
           self.setSidebarLoading(true);
           self.setNoMatch(false);
@@ -2204,23 +2205,14 @@ var Pontoon = (function (my) {
           params = {
             'project': state.project,
             'locale': state.locale,
-            'paths': self.getCurrentPaths()
+            'paths': self.getCurrentPaths(),
+            'filterSearch': self.getFilterSearch(),
+            'filterType': self.getFilterType(),
+            'inplaceEditor': self.requiresInplaceEditor()
           },
           deferred = $.Deferred();
 
       $.extend(params, opts);
-
-      if (state.filterSearch) {
-        params.filterSearch = state.filterSearch;
-      }
-
-      if (state.filterType) {
-        params.filterType = state.filterType;
-      }
-
-      if (self.requiresInplaceEditor()) {
-        params.inplaceEditor = true;
-      }
 
       $.ajax({
         type: 'POST',
@@ -2255,7 +2247,7 @@ var Pontoon = (function (my) {
 
       self.stats = entitiesData.stats;
       self.entities = entitiesData.entities;
-      self.pushState(hasNext);
+      self.hasNext = hasNext;
 
       if (!self.entities.length) {
         self.setNoMatch(true);
@@ -2302,7 +2294,7 @@ var Pontoon = (function (my) {
       ev.preventDefault();
 
       // Prevents from firing multiple calls during onscroll event
-      if (entitiesHeight > 0 && (list.scrollTop() >= entitiesHeight * 0.75 - list.height()) && history.state.hasNext && !this.isLoading()) {
+      if (entitiesHeight > 0 && (list.scrollTop() >= entitiesHeight * 0.75 - list.height()) && this.hasNext && !this.isLoading()) {
         var currentTop = list.scrollTop();
 
         this.setSidebarLoading(true);
@@ -2316,8 +2308,8 @@ var Pontoon = (function (my) {
       var self = this;
 
       return self.getEntities({excludeEntities: self.getEntitiesIds()}).then(function(entitiesData, state, hasNext) {
-        Pontoon.entities = Pontoon.entities.concat(entitiesData.entities);
-        self.pushState(hasNext);
+        self.entities = self.entities.concat(entitiesData.entities);
+        self.hasNext = hasNext;
 
         $(entitiesData.entities).map($.proxy(self.renderEntity, self)).each(function (idx, entity) {
           self.appendEntityToSidebar(entity);
@@ -2395,14 +2387,10 @@ var Pontoon = (function (my) {
     /*
      * Push history state
      */
-    pushState: function(hasNext) {
-      var self = this,
-          project = this.getSelectedProject(),
+    pushState: function() {
+      var project = this.getSelectedProject(),
           locale = this.getSelectedLocale(),
-          paths = requestedPart = this.getSelectedPart(),
-          filterSearch = self.getFilterSearch(),
-          filterType = self.getFilterType(),
-          hasNext = typeof hasNext == 'undefined' ? true : hasNext;
+          paths = requestedPart = this.getSelectedPart();
 
       // Fallback to first available part if no matches found (mistyped URL)
       this.updateCurrentPart();
@@ -2412,10 +2400,7 @@ var Pontoon = (function (my) {
       var state = {
         project: project,
         locale: locale,
-        paths: paths,
-        filterSearch: filterSearch,
-        filterType: filterType,
-        hasNext: hasNext,
+        paths: paths
       },
       url = '/' + locale + '/' + project + '/' + paths + '/';
 
@@ -2442,6 +2427,9 @@ window.onpopstate = function(e) {
       Pontoon.updateCurrentPart();
       Pontoon.updatePartSelector(e.state.paths);
     }
+
+    Pontoon.setMainLoading(true);
+    Pontoon.getEntities().then($.proxy(Pontoon.initializeSidebar, Pontoon), $.proxy(Pontoon.errorInSidebar, Pontoon));
   }
 };
 
