@@ -86,10 +86,6 @@ mark.placeable {
   margin-bottom: 20px;
 }
 
-#no-results {
-  display: none;
-}
-
 #download-file,
 #upload-file {
   top: 100000px;
