@@ -1142,14 +1142,17 @@ var Pontoon = (function (my) {
       // Update parts menu
       if (total) {
         var parts = $('.project .menu li .name[data-slug=' + this.project.slug + ']')
-                      .data('parts')[this.locale.code],
-            path = this.entities[0].path;
+                      .data('parts')[this.locale.code];
 
-        $(parts).each(function() {
-          if (this.resource__path === path) {
-            this.approved_strings = approved;
-          }
-        });
+        if (this.entities.length) { // We need this check if no entities found
+          path = this.entities[0].path;
+
+          $(parts).each(function() {
+            if (this.resource__path === path) {
+              this.approved_strings = approved;
+            }
+          });
+        }
       }
     },
 
@@ -2237,10 +2240,13 @@ var Pontoon = (function (my) {
       self.entities = entitiesData.entities;
       self.hasNext = hasNext;
 
+      // No entities found
       if (!self.entities.length) {
         self.setNoMatch(true);
         self.setMainLoading(false);
+        self.updateProgress();
         return;
+
       } else {
         self.setNoMatch(false);
       }
