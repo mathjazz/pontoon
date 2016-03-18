@@ -629,10 +629,9 @@ body > header aside p {
 
 #entitylist .loading {
   display: none;
-  background: #272A2F;
   color: #7BC876;
-  font-size: 30px;
-  padding: 5px 0 10px;
+  font-size: 128px;
+  padding: 40px 0 10px;
 }
 
 .advanced #entitylist,
