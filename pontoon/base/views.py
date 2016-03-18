@@ -395,20 +395,18 @@ def entities(request):
     filter_type = request.POST.get('filterType', '')
     filter_search = request.POST.get('filterSearch', '')
 
-    # In-context view requires loading of all entities
-    if request.POST.get('inplaceEditor', None):
-        entities = Entity.for_project_locale(project, locale, paths)
-        return JsonResponse({
-            'entities': Entity.map_entities(locale, entities),
-            'has_next': False,
-            'stats': TranslatedResource.objects.stats(project, paths, locale),
-        }, safe=False)
+    exclude_entities = request.POST.getlist('excludeEntities[]', [])
+    entities = Entity.for_project_locale(
+        project, locale, paths, exclude_entities, filter_type, filter_search
+    )
 
-    # In out-of-context view, paginate entities
+    # In-place view: load all entities
+    if request.POST.get('inplaceEditor', None):
+        has_next = False
+        entities_to_map = entities
+
+    # Out-of-context view: paginate entities
     else:
-        exclude_entities = request.POST.getlist('excludeEntities[]', [])
-        entities = Entity.for_project_locale(project, locale, paths, exclude_entities,
-            filter_type, filter_search)
         paginator = Paginator(entities, limit)
 
         try:
@@ -419,11 +417,14 @@ def entities(request):
                 'stats': {},
             })
 
-        return JsonResponse({
-            'entities': Entity.map_entities(locale, entities_page.object_list),
-            'has_next': entities_page.has_next(),
-            'stats': TranslatedResource.objects.stats(project, paths, locale),
-        }, safe=False)
+        has_next = entities_page.has_next()
+        entities_to_map = entities_page.object_list
+
+    return JsonResponse({
+        'entities': Entity.map_entities(locale, entities_to_map),
+        'has_next': has_next,
+        'stats': TranslatedResource.objects.stats(project, paths, locale),
+    }, safe=False)
 
 
 @require_AJAX

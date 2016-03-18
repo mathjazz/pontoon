@@ -22,7 +22,7 @@ var Pontoon = (function (my) {
           li = $('<li class="entity limited' +
         (status ? ' ' + status : '') +
         (!entity.body ? ' uneditable' : '') +
-        '" data-has-suggestions="' + entity.has_suggestions + '" data-entry-pk="' + entity.pk + '">' +
+        '" data-entry-pk="' + entity.pk + '">' +
         '<span class="status fa"></span>' +
         '<p class="string-wrapper">' +
           '<span class="source-string" data-key="' + self.doNotRender(entity.key) + '">' + source_string + '</span>' +
@@ -53,9 +53,31 @@ var Pontoon = (function (my) {
     },
 
 
+    /*
+     * Append entity to the appropriate section of the entity list
+     */
     appendEntityToSidebar: function (entity) {
       var section = entity.body ? '.editables' : '.uneditables';
       $('#entitylist .wrapper').find(section).append(entity.ui);
+    },
+
+
+    /*
+     * Display entity in the entity list
+     *
+     * Used only with in-place editor, which allows any entity to be selected
+     * and thus requires them to be available in the sidebar all the time
+     */
+    showEntityInSidebar: function (entity) {
+      $('#entitylist .entity[data-entry-pk=' + entity.pk + ']').addClass('limited').show();
+    },
+
+
+    /*
+     * Show/hide Not on current page heading when needed
+     */
+    setNotOnPage: function () {
+      $('#not-on-page:not(".hidden")').toggle($('.uneditables li:visible').length > 0);
     },
 
 
@@ -486,37 +508,13 @@ var Pontoon = (function (my) {
      * Search list of entities using the search field value
      */
     searchEntities: function () {
-      var ul = $('#entitylist .wrapper > ul'),
-          val = this.getFilterSearch();
-
-      // Search original strings and translations
-      ul
-        .find('.limited').hide()
-          .find('.string-wrapper:containsi("' + val + '")')
-        .parents('.limited').show();
-
-      // Search keys - separate selector for case-insensitivity
-      ul.find('.limited .source-string').filter(function() {
-        return this.dataset.key.toLowerCase().indexOf(val.toLowerCase()) > -1;
-      }).parents('.limited').show();
-
-      if ($('.uneditables li:visible').length === 0) {
-        $('#not-on-page:not(".hidden")').hide();
+      this.hasNext = true;
+      if (this.requiresInplaceEditor()) {
+        this.hideEntities();
       } else {
-        $('#not-on-page:not(".hidden")').show();
+        this.cleanupEntities();
       }
-    },
-
-
-    hasVisibleEntities: function() {
-      return $('#entitylist li:visible').length > 0;
-    },
-
-
-    getEntitiesIds: function() {
-      return $.map($('#entitylist li'), function(item) {
-        return $(item).data('entry-pk');
-      });
+      this.loadNextEntities();
     },
 
 
@@ -524,65 +522,15 @@ var Pontoon = (function (my) {
      * Filter list of entities by given type
      */
     filterEntities: function (type) {
-      var self = this,
-          list = $("#entitylist"),
+      var list = $("#entitylist"),
           title = $('#filter .menu li.' + type).text();
-
-      list.find('.entity').addClass('limited').show();
-
-      switch (type) {
-
-      case "untranslated":
-        list.find('.entity.approved, .entity.translated, .entity.fuzzy')
-          .removeClass('limited').hide();
-        break;
-
-      case "fuzzy":
-        list.find('.entity:not(".fuzzy")')
-          .removeClass('limited').hide();
-        break;
-
-      case "translated":
-        list.find('.entity:not(".translated")')
-          .removeClass('limited').hide();
-        break;
-
-      case "approved":
-        list.find('.entity:not(".approved")')
-          .removeClass('limited').hide();
-        break;
-
-      case "not-translated":
-        list.find('.entity.approved')
-          .removeClass('limited').hide();
-        break;
-
-      case "has-suggestions":
-        list.find('.entity[data-has-suggestions!="true"]')
-          .removeClass('limited').hide();
-        break;
-
-      case "unchanged":
-        list.find('.entity').each(function() {
-          var entity = this.entity;
-          if (entity.original !== entity.translation[0].string) {
-            $(this).removeClass('limited').hide();
-          }
-        });
-        break;
-
-      }
-
-      self.searchEntities();
 
       $('#search').attr('placeholder', 'Search ' + title);
       $('#filter .title').html(title);
       $('#filter').data('current-filter', type);
       $('#filter .button').attr('class', 'button selector ' + type);
 
-      self.hasNext = true;
-      self.cleanupEntities();
-      self.loadNextEntities();
+      this.searchEntities();
     },
 
 
@@ -594,10 +542,11 @@ var Pontoon = (function (my) {
           list = $('#entitylist');
 
       // Render
-      $('#entitylist .wrapper > ul').empty();
-      $($(self.entities).map($.proxy(self.renderEntity, self))).each(function (idx, entity){
+      $($(self.entities).map($.proxy(self.renderEntity, self))).each(function (idx, entity) {
         self.appendEntityToSidebar(entity);
       });
+
+      self.setNotOnPage();
     },
 
 
@@ -623,9 +572,7 @@ var Pontoon = (function (my) {
       // Search entities
       $('#search').off('keyup').on('keyup', function (e) {
         delay(function () {
-          self.hasNext = true;
           self.searchEntities();
-          self.loadNextEntities();
         }, 500);
       });
 
@@ -1111,10 +1058,6 @@ var Pontoon = (function (my) {
 
                   self.updateCurrentTranslationLength();
                   self.updateCachedTranslation();
-
-                // Inactive translation deleted
-                } else {
-                  self.updateHasSuggestions(entity);
                 }
               });
           },
@@ -1199,28 +1142,6 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Update has-suggestions status in the entity list
-     *
-     * entity Entity
-     */
-    updateHasSuggestions: function (entity) {
-      $.ajax({
-        url: '/get-history/',
-        data: {
-          entity: entity.pk,
-          locale: this.locale.code,
-          plural_form: this.getPluralForm()
-        },
-        success: function(data) {
-          if (data !== "error") {
-            entity.ui.attr('data-has-suggestions', data.length > 1);
-          }
-        }
-      });
-    },
-
-
-    /*
      * Update entity in the entity list
      *
      * entity Entity
@@ -1237,7 +1158,6 @@ var Pontoon = (function (my) {
           .html(self.doNotRender(translation || ''));
 
       self.updateProgress();
-      self.updateHasSuggestions(entity);
     },
 
 
@@ -1532,7 +1452,6 @@ var Pontoon = (function (my) {
           self.postMessage("MODE", "Advanced");
         } else {
           $('#sidebar').show();
-          self.searchEntities();
           $('#source, #iframe-cover').css('margin-left', $('#sidebar').width());
           self.postMessage("MODE", "Basic");
         }
@@ -1658,7 +1577,6 @@ var Pontoon = (function (my) {
         e.stopPropagation();
 
         self.checkUnsavedChanges(function() {
-          self.cleanupEntities();
           self.pushState(true);
           self.initializePart(true);
         });
@@ -1683,7 +1601,17 @@ var Pontoon = (function (my) {
      * Removes all previously loaded entities and allows to load new ones
      */
     cleanupEntities: function() {
+      this.entities = [];
       $('#entitylist .entity').remove();
+    },
+
+
+    /*
+     * Hides all previously loaded entities
+     */
+    hideEntities: function() {
+      $('#entitylist .entity').removeClass('limited').hide();
+      this.setNotOnPage();
     },
 
 
@@ -2277,7 +2205,8 @@ var Pontoon = (function (my) {
     initializePart: function(forceReloadIframe) {
       var self = this;
 
-      self.entities = self.ready = null;
+      self.cleanupEntities();
+      self.ready = null;
       self.setMainLoading(true);
       self.getEntities().then($.proxy(self.processEntities, self), $.proxy(self.noEntitiesError, self));
 
@@ -2307,31 +2236,48 @@ var Pontoon = (function (my) {
     },
 
 
+    hasVisibleEntities: function() {
+      return $('#entitylist li:visible').length > 0;
+    },
+
+
+    getEntitiesIds: function() {
+      return $.map($('#entitylist li'), function(item) {
+        return $(item).data('entry-pk');
+      });
+    },
+
+
     loadNextEntities: function() {
-      var self = this;
+      var self = this,
+          requiresInplaceEditor = self.requiresInplaceEditor();
+          excludeEntities = requiresInplaceEditor ? {} : {excludeEntities: self.getEntitiesIds()};
 
       self.setSidebarLoading(true);
       self.setNoMatch(false);
 
-      if (self.requiresInplaceEditor()) {
-        self.setSidebarLoading(false);
+      self.getEntities(excludeEntities).then(function(entitiesData, state, hasNext) {
+        self.entities = self.entities.concat(entitiesData.entities);
+        self.hasNext = hasNext;
 
-      } else {
-        self.getEntities({excludeEntities: self.getEntitiesIds()}).then(function(entitiesData, state, hasNext) {
-          self.entities = self.entities.concat(entitiesData.entities);
-          self.hasNext = hasNext;
+        if (requiresInplaceEditor) {
+          $(entitiesData.entities).each(function (idx, entity) {
+            self.showEntityInSidebar(entity);
+          });
+          self.setNotOnPage();
 
+        } else {
           $(entitiesData.entities).map($.proxy(self.renderEntity, self)).each(function (idx, entity) {
             self.appendEntityToSidebar(entity);
           });
+        }
 
-          if(!hasNext && !self.hasVisibleEntities()) {
-            self.setNoMatch(true);
-          }
-        }).always(function() {
-          self.setSidebarLoading(false);
-        });
-      }
+        if(!hasNext && !self.hasVisibleEntities()) {
+          self.setNoMatch(true);
+        }
+      }).always(function() {
+        self.setSidebarLoading(false);
+      });
     },
 
 
