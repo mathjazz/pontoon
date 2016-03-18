@@ -1614,13 +1614,9 @@ var Pontoon = (function (my) {
         e.stopPropagation();
 
         self.checkUnsavedChanges(function() {
-          $('#source').attr('src', self.currentPart.url);
           self.cleanupEntities();
           self.pushState(true);
-          self.setMainLoading(true);
-
-          // We have to reload all entities.
-          self.getEntities().then($.proxy(self.initializeSidebar, self), $.proxy(self.errorInSidebar, self));
+          self.initializePart(true);
         });
 
         self.closeNotification();
@@ -1906,7 +1902,7 @@ var Pontoon = (function (my) {
               locale: Pontoon.locale,
               user: Pontoon.user
             }, null, $('#source').attr('src'));
-          }, Pontoon.errorInSidebar);
+          }, Pontoon.noEntitiesError);
           break;
 
         case "DATA":
@@ -2232,18 +2228,9 @@ var Pontoon = (function (my) {
 
 
     /*
-    * Displays an error inside the sidebar.
-    */
-    errorInSidebar: function() {
-      $('#project-load')
-        .find('.animation').hide().end()
-        .find('.text')
-          .html('Oops, something went wrong.')
-          .animate({opacity: 1});
-    },
-
-
-    initializeSidebar: function(entitiesData, state, hasNext) {
+     * Process entities if returned, based on in place support
+     */
+    processEntities: function(entitiesData, state, hasNext) {
       var self = this;
 
       self.stats = entitiesData.stats;
@@ -2265,7 +2252,40 @@ var Pontoon = (function (my) {
       // Projects without in place translation support
       } else {
         self.withoutInPlace();
-        $("#entitylist .wrapper").scroll($.proxy(self.onSidebarScroll, this));
+        $('#entitylist .wrapper').scroll($.proxy(self.onSidebarScroll, this));
+      }
+    },
+
+
+    /*
+     * Displays an error if unable to get entities
+     */
+    noEntitiesError: function() {
+      $('#project-load')
+        .find('.animation').hide().end()
+        .find('.text')
+          .html('Oops, something went wrong.')
+          .animate({opacity: 1});
+    },
+
+
+    /*
+     * Request entities and website for selected part
+     */
+    initializePart: function(forceReloadIframe) {
+      var self = this;
+
+      self.entities = self.ready = null;
+      self.setMainLoading(true);
+      self.getEntities().then($.proxy(self.processEntities, self), $.proxy(self.noEntitiesError, self));
+
+      if (self.requiresInplaceEditor()) {
+        var url = self.currentPart.url;
+
+        if ($('#source').attr('src') !== url || forceReloadIframe) {
+          $('#source').attr('src', url);
+        }
+        window.addEventListener("message", self.receiveMessage, false);
       }
     },
 
@@ -2427,8 +2447,7 @@ window.onpopstate = function(e) {
       Pontoon.updatePartSelector(e.state.paths);
     }
 
-    Pontoon.setMainLoading(true);
-    Pontoon.getEntities().then($.proxy(Pontoon.initializeSidebar, Pontoon), $.proxy(Pontoon.errorInSidebar, Pontoon));
+    Pontoon.initializePart(true);
   }
 };
 
@@ -2443,11 +2462,4 @@ Pontoon.attachMainHandlers();
 Pontoon.attachFilterHandlers();
 Pontoon.attachEditorHandlers();
 Pontoon.pushState(true);
-Pontoon.setMainLoading(true);
-
-if (Pontoon.requiresInplaceEditor()) {
-  $('#source').attr('src', Pontoon.currentPart.url);
-  window.addEventListener("message", Pontoon.receiveMessage, false);
-}
-
-Pontoon.getEntities().then($.proxy(Pontoon.initializeSidebar, Pontoon), $.proxy(Pontoon.errorInSidebar, Pontoon));
+Pontoon.initializePart();
