@@ -581,16 +581,7 @@ var Pontoon = (function (my) {
       $('#filter .button').attr('class', 'button selector ' + type);
 
       self.hasNext = true;
-      self.setSidebarLoading(true);
-      self.setNoMatch(false);
-
-      if (self.requiresInplaceEditor()) {
-        self.setSidebarLoading(false);
-      } else {
-        self.loadNextEntities().always(function(){
-          self.setSidebarLoading(false);
-        });
-      }
+      self.loadNextEntities();
     },
 
 
@@ -609,7 +600,7 @@ var Pontoon = (function (my) {
     },
 
 
-    attachFilterHandlers: function() {
+    attachEntityListHandlers: function() {
       var self = this;
 
       // Filter entities
@@ -633,17 +624,66 @@ var Pontoon = (function (my) {
         delay(function () {
           self.hasNext = true;
           self.searchEntities();
-          self.setSidebarLoading(true);
-          self.setNoMatch(false);
-
-          if (self.requiresInplaceEditor()) {
-            self.setSidebarLoading(false);
-          } else {
-            self.loadNextEntities().always(function() {
-              self.setSidebarLoading(false);
-            });
-          }
+          self.loadNextEntities();
         }, 500);
+      });
+
+      function mouseMoveHandler(e) {
+        var initial = e.data.initial,
+            left = Math.min(Math.max(initial.leftWidth + e.pageX - initial.position, initial.leftMin),
+                   initial.leftWidth + initial.rightWidth - initial.rightMin),
+            right = Math.min(Math.max(initial.rightWidth - e.pageX + initial.position, initial.rightMin),
+                    initial.leftWidth + initial.rightWidth - initial.leftMin);
+
+        initial.left.width(left);
+        initial.right.width(right).css('left', left);
+      }
+
+      function mouseUpHandler(e) {
+        $(document)
+          .unbind('mousemove', mouseMoveHandler)
+          .unbind('mouseup', mouseUpHandler);
+      }
+
+      // Resize entity list and editor by dragging
+      $('#drag-1').bind('mousedown', function (e) {
+        e.preventDefault();
+
+        var left = $('#entitylist'),
+            right = $('#editor'),
+            data = {
+              left: left,
+              right: right,
+              leftWidth: left.outerWidth(),
+              rightWidth: right.outerWidth(),
+              leftMin: 250,
+              rightMin: 350,
+              position: e.pageX
+            };
+
+        left.css('transition-property', 'none');
+        right.css('transition-property', 'none');
+
+        $(document)
+          .bind('mousemove', { initial: data }, mouseMoveHandler)
+          .bind('mouseup', { initial: data }, mouseUpHandler);
+      });
+
+      // Scroll entities
+      $('#entitylist .wrapper').scroll(function(e) {
+        e.preventDefault();
+
+        var $editableEntities = $('#entitylist .wrapper .editables'),
+            $uneditableEntities = $('#entitylist .wrapper .uneditables'),
+            entitiesHeight = $editableEntities.height() + $uneditableEntities.height(),
+            list = $('#entitylist .wrapper');
+
+        // Prevents from firing multiple calls during onscroll event
+        if (entitiesHeight > 0 && (list.scrollTop() >= entitiesHeight * 0.75 - list.height()) && self.hasNext && !self.isLoading()) {
+          var currentTop = list.scrollTop();
+
+          self.loadNextEntities();
+        }
       });
     },
 
@@ -1631,47 +1671,6 @@ var Pontoon = (function (my) {
         Pontoon.closeNotification();
       });
 
-      function mouseMoveHandler(e) {
-        var initial = e.data.initial,
-            left = Math.min(Math.max(initial.leftWidth + e.pageX - initial.position, initial.leftMin),
-                   initial.leftWidth + initial.rightWidth - initial.rightMin),
-            right = Math.min(Math.max(initial.rightWidth - e.pageX + initial.position, initial.rightMin),
-                    initial.leftWidth + initial.rightWidth - initial.leftMin);
-
-        initial.left.width(left);
-        initial.right.width(right).css('left', left);
-      }
-
-      function mouseUpHandler(e) {
-        $(document)
-          .unbind('mousemove', mouseMoveHandler)
-          .unbind('mouseup', mouseUpHandler);
-      }
-
-      // Resize entity list and editor by dragging
-      $('#drag-1').bind('mousedown', function (e) {
-        e.preventDefault();
-
-        var left = $('#entitylist'),
-            right = $('#editor'),
-            data = {
-              left: left,
-              right: right,
-              leftWidth: left.outerWidth(),
-              rightWidth: right.outerWidth(),
-              leftMin: 250,
-              rightMin: 350,
-              position: e.pageX
-            };
-
-        left.css('transition-property', 'none');
-        right.css('transition-property', 'none');
-
-        $(document)
-          .bind('mousemove', { initial: data }, mouseMoveHandler)
-          .bind('mouseup', { initial: data }, mouseUpHandler);
-      });
-
       // File upload
       $('#id_uploadfile').change(function() {
         self.updateFormFields($('form#upload-file'));
@@ -2259,7 +2258,6 @@ var Pontoon = (function (my) {
       // Projects without in place translation support
       } else {
         self.withoutInPlace();
-        $('#entitylist .wrapper').scroll($.proxy(self.onSidebarScroll, this));
       }
     },
 
@@ -2312,40 +2310,33 @@ var Pontoon = (function (my) {
     },
 
 
-    onSidebarScroll: function(ev) {
-      var $editableEntities = $('#entitylist .wrapper .editables'),
-          $uneditableEntities = $('#entitylist .wrapper .uneditables'),
-          entitiesHeight = $editableEntities.height() + $uneditableEntities.height(),
-          list = $('#entitylist .wrapper');
-      ev.preventDefault();
-
-      // Prevents from firing multiple calls during onscroll event
-      if (entitiesHeight > 0 && (list.scrollTop() >= entitiesHeight * 0.75 - list.height()) && this.hasNext && !this.isLoading()) {
-        var currentTop = list.scrollTop();
-
-        this.setSidebarLoading(true);
-        this.setNoMatch(false);
-        this.loadNextEntities();
-      }
-    },
-
-
     loadNextEntities: function() {
       var self = this;
 
-      return self.getEntities({excludeEntities: self.getEntitiesIds()}).then(function(entitiesData, state, hasNext) {
-        self.entities = self.entities.concat(entitiesData.entities);
-        self.hasNext = hasNext;
+      self.setSidebarLoading(true);
+      self.setNoMatch(false);
 
-        $(entitiesData.entities).map($.proxy(self.renderEntity, self)).each(function (idx, entity) {
-          self.appendEntityToSidebar(entity);
-        });
+      if (self.requiresInplaceEditor()) {
         self.setSidebarLoading(false);
 
-        if(!hasNext && !self.hasVisibleEntities()) {
-          self.setNoMatch(true);
-        }
-      });
+      } else {
+        self.getEntities({excludeEntities: self.getEntitiesIds()}).then(function(entitiesData, state, hasNext) {
+          self.entities = self.entities.concat(entitiesData.entities);
+          self.hasNext = hasNext;
+
+          $(entitiesData.entities).map($.proxy(self.renderEntity, self)).each(function (idx, entity) {
+            self.appendEntityToSidebar(entity);
+          });
+
+          self.setSidebarLoading(false);
+
+          if(!hasNext && !self.hasVisibleEntities()) {
+            self.setNoMatch(true);
+          }
+        }).always(function() {
+          self.setSidebarLoading(false);
+        });
+      }
     },
 
 
@@ -2466,7 +2457,7 @@ Pontoon.user = {
 };
 
 Pontoon.attachMainHandlers();
-Pontoon.attachFilterHandlers();
+Pontoon.attachEntityListHandlers();
 Pontoon.attachEditorHandlers();
 Pontoon.pushState(true);
 Pontoon.initializePart();
