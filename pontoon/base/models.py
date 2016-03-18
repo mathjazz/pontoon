@@ -948,7 +948,7 @@ class EntityQuerySet(models.QuerySet):
         return self.with_status_counts(locale).exclude(Q(approved_count=F('expected_count')))
 
     def has_suggestions(self, locale):
-        return self.with_status_counts(locale).filter(suggested_count__lt=F('approved_count'), approved_count__gte=1)
+        return self.with_status_counts(locale).filter(suggested_count__gt=0)
 
     def unchanged(self, locale):
         return self.with_status_counts(locale).filter(unchanged_count=F('expected_count'))
