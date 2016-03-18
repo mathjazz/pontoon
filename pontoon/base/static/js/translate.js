@@ -581,6 +581,7 @@ var Pontoon = (function (my) {
       $('#filter .button').attr('class', 'button selector ' + type);
 
       self.hasNext = true;
+      self.cleanupEntities();
       self.loadNextEntities();
     },
 
@@ -681,7 +682,6 @@ var Pontoon = (function (my) {
         // Prevents from firing multiple calls during onscroll event
         if (entitiesHeight > 0 && (list.scrollTop() >= entitiesHeight * 0.75 - list.height()) && self.hasNext && !self.isLoading()) {
           var currentTop = list.scrollTop();
-
           self.loadNextEntities();
         }
       });
@@ -2231,7 +2231,7 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Process entities if returned, based on in place support
+     * Process entities if returned, considering in place support
      */
     processEntities: function(entitiesData, state, hasNext) {
       var self = this;
@@ -2251,11 +2251,8 @@ var Pontoon = (function (my) {
         self.setNoMatch(false);
       }
 
-      // Projects with in place translation support
       if (self.requiresInplaceEditor()) {
         self.withInPlace();
-
-      // Projects without in place translation support
       } else {
         self.withoutInPlace();
       }
@@ -2327,8 +2324,6 @@ var Pontoon = (function (my) {
           $(entitiesData.entities).map($.proxy(self.renderEntity, self)).each(function (idx, entity) {
             self.appendEntityToSidebar(entity);
           });
-
-          self.setSidebarLoading(false);
 
           if(!hasNext && !self.hasVisibleEntities()) {
             self.setNoMatch(true);
