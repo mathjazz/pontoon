@@ -581,6 +581,7 @@ var Pontoon = (function (my) {
       $('#filter .button').attr('class', 'button selector ' + type);
 
       self.hasNext = true;
+      self.setSidebarLoading(true);
       self.setNoMatch(false);
 
       if (self.requiresInplaceEditor()) {
