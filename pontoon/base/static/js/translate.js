@@ -77,7 +77,7 @@ var Pontoon = (function (my) {
      * Show/hide Not on current page heading when needed
      */
     setNotOnPage: function () {
-      $('#not-on-page:not(".hidden")').toggle($('.uneditables li:visible').length > 0);
+      $('#not-on-page:not(".hidden")').toggle($('.uneditables li.limited').length > 0);
     },
 
 
@@ -519,17 +519,24 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Filter list of entities by given type
+     * Set filter widget
      */
-    filterEntities: function (type) {
+    setFilter: function (type) {
       var list = $("#entitylist"),
           title = $('#filter .menu li.' + type).text();
 
       $('#search').attr('placeholder', 'Search ' + title);
-      $('#filter .title').html(title);
-      $('#filter').data('current-filter', type);
-      $('#filter .button').attr('class', 'button selector ' + type);
+      $('#filter').data('current-filter', type)
+        .find('.title').html(title).end()
+        .find('.button').attr('class', 'button selector ' + type);
+    },
 
+
+    /*
+     * Filter list of entities by given type
+     */
+    filterEntities: function (type) {
+      this.setFilter(type);
       this.searchEntities();
     },
 
@@ -541,7 +548,6 @@ var Pontoon = (function (my) {
       var self = this,
           list = $('#entitylist');
 
-      // Render
       $($(self.entities).map($.proxy(self.renderEntity, self))).each(function (idx, entity) {
         self.appendEntityToSidebar(entity);
       });
@@ -1689,8 +1695,6 @@ var Pontoon = (function (my) {
       this.updateSaveButtons();
       this.renderEntityList();
 
-      $('#search').val('');
-
       this.updateProgress();
       $("#progress").show();
 
@@ -2206,6 +2210,11 @@ var Pontoon = (function (my) {
       var self = this;
 
       self.cleanupEntities();
+
+      // Reset filter and search to default values
+      self.setFilter('all');
+      $('#search').val('');
+
       self.ready = null;
       self.setMainLoading(true);
       self.getEntities().then($.proxy(self.processEntities, self), $.proxy(self.noEntitiesError, self));
