@@ -575,8 +575,8 @@ var Pontoon = (function (my) {
         };
       })();
 
-      // Search entities
-      $('#search').off('keyup').on('keyup', function (e) {
+      // Search entities (keyup event also triggered on modifier keys etc.)
+      $('#search').off('input').on('input', function (e) {
         delay(function () {
           self.searchEntities();
         }, 500);
