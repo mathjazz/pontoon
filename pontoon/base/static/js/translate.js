@@ -1001,7 +1001,7 @@ var Pontoon = (function (my) {
           data: {
             csrfmiddlewaretoken: $('#server').data('csrf'),
             translation: $(this).parents('li').data('id'),
-            paths: [history.state.paths],
+            paths: self.getPartPaths(self.currentPart)
           },
           success: function(data) {
             var item = button.parents('li'),
@@ -1078,8 +1078,9 @@ var Pontoon = (function (my) {
     /*
      * Update progress indicator and value
      */
-    updateProgress: function () {
-      var stats = this.stats,
+    updateProgress: function (entity) {
+      var self = this,
+          stats = this.stats,
           total = stats.total,
           translated = stats.translated,
           approved = stats.approved,
@@ -1091,7 +1092,8 @@ var Pontoon = (function (my) {
             fuzzy: total ? fuzzy / total : 0,
             untranslated: total ? untranslated / total : 0
           },
-          number = Math.floor(fraction.approved * 100);
+          number = Math.floor(fraction.approved * 100),
+          approvedOld = parseInt($('#progress .menu .details .approved p').html());
 
       // Update graph
       $('#progress .graph').each(function() {
@@ -1121,7 +1123,7 @@ var Pontoon = (function (my) {
       // Update number
       $('#progress .number').html(number);
 
-      // Update details in the menu
+      // Update graph legend
       $('#progress .menu').find('header span').html(total).end()
         .find('.details')
           .find('.approved p').html(approved).end()
@@ -1130,19 +1132,18 @@ var Pontoon = (function (my) {
           .find('.untranslated p').html(untranslated);
 
       // Update parts menu
-      if (total) {
-        var parts = $('.project .menu li .name[data-slug=' + this.project.slug + ']')
-                      .data('parts')[this.locale.code];
+      if (entity && total) {
+        var paths = [],
+            parts = $('.project .menu li .name[data-slug=' + self.project.slug + ']')
+                      .data('parts')[self.locale.code];
 
-        if (this.entities.length) { // We need this check if no entities found
-          path = this.entities[0].path;
+        $(parts).each(function() {
+          paths = self.getPartPaths(this);
 
-          $(parts).each(function() {
-            if (this.resource__path === path) {
-              this.approved_strings = approved;
-            }
-          });
-        }
+          if (paths.indexOf(entity.path) !== -1) {
+            this.approved_strings += (approved - approvedOld);
+          }
+        });
       }
     },
 
@@ -1163,7 +1164,7 @@ var Pontoon = (function (my) {
         .find('.translation-string')
           .html(self.doNotRender(translation || ''));
 
-      self.updateProgress();
+      self.updateProgress(entity);
     },
 
 
@@ -1338,7 +1339,7 @@ var Pontoon = (function (my) {
           original: entity['original' + self.isPluralized()],
           ignore_check: inplace || $('#quality').is(':visible') || !syncLocalStorage,
           approve: self.approvedNotSubmitted || false,
-          paths: [history.state.paths]
+          paths: self.getPartPaths(self.currentPart)
         },
         success: function(data) {
           renderTranslation(data);
@@ -2115,10 +2116,10 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Get paths for the current part
+     * Get paths for the selected part
      */
-    getCurrentPaths: function() {
-      var paths = this.currentPart.resource__path;
+    getPartPaths: function(part) {
+      var paths = part.resource__path;
       if (paths.constructor === Array) {
         return paths;
       }
@@ -2137,7 +2138,7 @@ var Pontoon = (function (my) {
           params = {
             'project': state.project,
             'locale': state.locale,
-            'paths': self.getCurrentPaths(),
+            'paths': self.getPartPaths(self.currentPart),
             'filterSearch': self.getFilterSearch(),
             'filterType': self.getFilterType(),
             'inplaceEditor': self.requiresInplaceEditor()
