@@ -1679,6 +1679,14 @@ var Pontoon = (function (my) {
 
 
     /*
+     * Open first entity in the entity list in the editor
+     */
+    openFirstEntity: function () {
+      $('#entitylist .entity:first').mouseover().click();
+    },
+
+
+    /*
      * Create user interface
      */
     createUI: function () {
@@ -1704,7 +1712,7 @@ var Pontoon = (function (my) {
 
       // If 2-column layout opened by default, open first entity in the editor
       if (this.app.advanced) {
-        $("#entitylist .entity:first").mouseover().click();
+        this.openFirstEntity();
 
       // If not and editor opened, show entity list
       } else if ($("#editor").is('.opened')) {
@@ -1919,7 +1927,7 @@ var Pontoon = (function (my) {
           // On switch to 2-column view, populate editor if empty
           if (advanced) {
             if (!$('#editor')[0].entity || !$('#entitylist .entity.hovered').length) {
-              $("#entitylist .entity:first").mouseover().click();
+              Pontoon.openFirstEntity();
             }
 
           // On switch to 1-column view, open editor if needed
@@ -2236,8 +2244,9 @@ var Pontoon = (function (my) {
     },
 
 
-    setNoMatch: function(state) {
-      $('#entitylist .no-match').toggle(state);
+    setNoMatch: function(noMatch) {
+      $('#entitylist .no-match').toggle(noMatch);
+      $('#sidebar').toggleClass('no', noMatch);
     },
 
 
@@ -2284,6 +2293,8 @@ var Pontoon = (function (my) {
 
         if(!hasNext && !self.hasVisibleEntities()) {
           self.setNoMatch(true);
+        } else if (self.app.advanced) {
+          self.openFirstEntity();
         }
       }).always(function() {
         self.setSidebarLoading(false);

@@ -627,6 +627,14 @@ body > header aside p {
   width: 100%;
 }
 
+#sidebar.no #entitylist {
+  border-right: 1px solid #5E6475;
+}
+
+#sidebar.no #editor {
+  display: none;
+}
+
 #entitylist .loading {
   display: none;
   color: #7BC876;
