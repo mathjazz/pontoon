@@ -1088,7 +1088,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             search_query |= Q(**{'translation__string__icontains': filter_search})
             search_query |= Q(**{'comment__icontains': filter_search})
             search_query |= Q(**{'key__icontains': filter_search})
-            entities = entities.filter(search_query).distinct()
+            entities = Entity.objects.filter(search_query, pk__in=entities).distinct()
 
         entities = entities.prefetch_related(
             'resource',
