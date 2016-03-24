@@ -1601,6 +1601,13 @@ var Pontoon = (function (my) {
         self.updateFormFields($('form#upload-file'));
         $('form#upload-file').submit();
       });
+
+      // Focus & unfocus iframe to make history (back/forward) work
+      $('#source, #iframe-cover').hover(function() {
+        $('#source').click();
+      }, function() {
+        $('body').click();
+      });
     },
 
 
@@ -1708,7 +1715,6 @@ var Pontoon = (function (my) {
       $("#progress").show();
 
       $("#project-load").hide();
-      $('#source').click();
 
       // If 2-column layout opened by default, open first entity in the editor
       if (this.app.advanced) {
