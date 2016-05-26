@@ -218,6 +218,10 @@
       <textarea {% if not user.is_authenticated() %} readonly {% endif %} dir="auto" lang="{{ locale.code }}" id="translation" placeholder="Type translation and press Enter to save"></textarea>
 
       <menu>
+        <section class="read">
+          <p class="banner">This is a read-only localization. <a id="request-translation" href="">Request access</a>.</p>
+        </section>
+        <section class="write">
         {% if user.is_authenticated() %}
           <div id="unsaved" class="warning-overlay">
             <a href="#" class="cancel">&times;</a>
@@ -262,8 +266,9 @@
           <button id="clear" title="Clear Translation (Ctrl + Shift + Backspace)">Clear</button>
           <button id="save" title="Save Translation (Enter)"></button>
         {% else %}
-          <p id="sign-in-required"><a id="sidebar-signin" href="">Sign in</a> to translate.</p>
+          <p class="banner"><a id="sidebar-signin" href="">Sign in</a> to translate.</p>
         {% endif %}
+        </section>
       </menu>
 
       <div id="helpers" class="tabs">

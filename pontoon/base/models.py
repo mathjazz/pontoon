@@ -417,15 +417,17 @@ class Project(AggregatedStats):
     locales = models.ManyToManyField(Locale, through='ProjectLocale')
 
     # Project info
-    info_brief = models.TextField("Project info", blank=True)
+    info_brief = models.TextField('Project info', blank=True)
 
     # Website for in place localization
-    url = models.URLField("URL", blank=True)
-    width = models.PositiveIntegerField(
-        "Default website (iframe) width in pixels. If set, \
-        sidebar will be opened by default.", null=True, blank=True)
-    links = models.BooleanField(
-        'Keep links on the project website clickable', default=False)
+    url = models.URLField('URL', blank=True)
+    width = models.PositiveIntegerField(null=True, blank=True, help_text="""
+        Default website (iframe) width in pixels. If set, sidebar will be
+        opened by default.
+    """)
+    links = models.BooleanField('Clickable links', default=False, help_text="""
+        Keep links on the project website clickable.
+    """)
 
     # Disable project instead of deleting to keep translation memory & attributions
     disabled = models.BooleanField(default=False)
@@ -587,6 +589,7 @@ class ProjectLocale(AggregatedStats):
     """Link between a project and a locale that is active for it."""
     project = models.ForeignKey(Project, related_name='project_locale')
     locale = models.ForeignKey(Locale, related_name='project_locale')
+    readonly = models.BooleanField(default=False)
 
     #: Most recent translation approved or created for this project in
     #: this locale.

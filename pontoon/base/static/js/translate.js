@@ -52,7 +52,7 @@ var Pontoon = (function (my) {
         (this.allEntitiesSelected ? ' selected' : '') +
         (entity.visible ? ' visible': '') +
         '" data-entry-pk="' + entity.pk + '">' +
-        '<span class="status fa' + (self.user.isTranslator ? '' : ' unselectable') + '"></span>' +
+        '<span class="status fa' + (!self.readonly && self.user.isTranslator ? '' : ' unselectable') + '"></span>' +
         '<p class="string-wrapper">' +
           '<span class="source-string">' + source_string + '</span>' +
           '<span class="translation-string" dir="auto" lang="' + self.locale.code + '">' +
@@ -220,7 +220,7 @@ var Pontoon = (function (my) {
                 (this.approved ? 'translated' : this.fuzzy ? 'fuzzy' : 'suggested') +
                 '" title="Copy Into Translation (Tab)">' +
                   '<header class="clearfix' +
-                    ((self.user.isTranslator) ? ' translator' :
+                    ((!self.readonly && self.user.isTranslator) ? ' translator' :
                       ((self.user.email === this.email && !this.approved) ?
                         ' own' : '')) +
                     '">' +
@@ -234,7 +234,7 @@ var Pontoon = (function (my) {
                       (this.approved ? this.approved_user ?
                         'Approved by ' + this.approved_user : '' : 'Approve') +
                       '"></button>' +
-                      ((self.user.email && (self.user.email === this.email) || self.user.isTranslator) ? '<button class="delete fa" title="Delete"></button>' : '') +
+                      (!self.readonly && ((self.user.email && (self.user.email === this.email) || self.user.isTranslator)) ? '<button class="delete fa" title="Delete"></button>' : '') +
                     '</menu>' +
                   '</header>' +
                   '<p class="translation" dir="auto" lang="' + self.locale.code + '">' +
@@ -1611,7 +1611,7 @@ var Pontoon = (function (my) {
           self.endLoader();
           self.showQualityCheckWarnings(data.warnings);
 
-        } else if (data.same) {
+        } else if (data.error) {
           self.endLoader(data.message, 'error');
           goToNextTranslation();
 
@@ -1953,6 +1953,21 @@ var Pontoon = (function (my) {
 
 
     /*
+     * Toggle read-only mode
+     */
+    toggleReadOnly: function () {
+      if (this.readonly && this.user.isTranslator) {
+        $('menu').addClass('readonly');
+        $('#translation').attr('readonly', true);
+
+      } else {
+        $('menu').removeClass('readonly');
+        $('#translation').attr('readonly', false);
+      }
+    },
+
+
+    /*
      * Update save buttons based on user permissions and settings
      */
     updateSaveButtons: function () {
@@ -1965,7 +1980,7 @@ var Pontoon = (function (my) {
      */
     updateProfileMenu: function () {
       $('#profile .admin-current-project a').attr('href', '/admin/projects/' + this.project.slug + '/');
-      $('#profile .upload').toggle(this.state.paths && this.user.isTranslator && this.part !== 'all-resources');
+      $('#profile .upload').toggle(this.state.paths && !this.readonly && this.user.isTranslator && this.part !== 'all-resources');
     },
 
 
@@ -2049,6 +2064,7 @@ var Pontoon = (function (my) {
       self.updateProjectInfo();
       self.updateProfileMenu();
       self.updateSaveButtons();
+      self.toggleReadOnly();
       self.renderEntityList();
       self.updateProgress();
 
@@ -2599,6 +2615,7 @@ var Pontoon = (function (my) {
 
       self.stats = entitiesData.stats;
       self.entities = entitiesData.entities;
+      self.readonly = entitiesData.readonly;
       self.hasNext = hasNext;
 
       // No entities found

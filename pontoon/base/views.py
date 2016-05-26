@@ -397,6 +397,8 @@ def entities(request):
 
     project = get_object_or_404(Project, slug=project)
     locale = get_object_or_404(Locale, code__iexact=locale)
+    project_locale = get_object_or_404(
+        ProjectLocale, locale=locale, project=project)
 
     filter_type = request.POST.get('filter', '')
     search = request.POST.get('search', '')
@@ -415,6 +417,7 @@ def entities(request):
         return JsonResponse({
             'entities': Entity.map_entities(locale, entities),
             'stats': TranslatedResource.objects.stats(project, paths, locale),
+            'readonly': project_locale.readonly,
         }, safe=False)
 
     entities = Entity.for_project_locale(
@@ -469,6 +472,7 @@ def entities(request):
         'entities': Entity.map_entities(locale, entities_to_map, visible_entities),
         'has_next': has_next,
         'stats': TranslatedResource.objects.stats(project, paths, locale),
+        'readonly': project_locale.readonly,
     }, safe=False)
 
 
@@ -713,8 +717,12 @@ def update_translation(request):
     user = request.user
     if not request.user.is_authenticated():
         if e.resource.project.pk != 1:
-            log.error("Not authenticated")
-            return HttpResponse("error")
+            log.error('Not authenticated')
+            return JsonResponse({
+                'error': True,
+                'message': 'Sign in to save translations.',
+            })
+            return HttpResponse("not-authenticated")
         else:
             user = None
 
@@ -753,7 +761,7 @@ def update_translation(request):
                 if t.user is not None and t.approved and t.approved_user \
                         and t.approved_date and not t.fuzzy:
                     return JsonResponse({
-                        'same': True,
+                        'error': True,
                         'message': 'Same translation already exists.',
                     })
 
@@ -809,7 +817,7 @@ def update_translation(request):
                     })
 
                 return JsonResponse({
-                    'same': True,
+                    'error': True,
                     'message': 'Same translation already exists.',
                 })
 

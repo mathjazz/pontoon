@@ -705,14 +705,14 @@ $(function() {
         return false;
       }
 
-      // Ctrl + Shift + A: Select All Strings
-      if (Pontoon.user.isTranslator && e.ctrlKey && e.shiftKey && key === 65) {
+      // Ctrl + Alt + A: Select All Strings
+      if (!Pontoon.readonly && Pontoon.user.isTranslator && e.ctrlKey && e.shiftKey && key === 65) {
         Pontoon.selectAllEntities();
         return false;
       }
 
       // Escape: Deselect entities and switch to first entity
-      if (Pontoon.user.isTranslator && $('#entitylist .entity.selected').length && key === 27) {
+      if (!Pontoon.readonly && Pontoon.user.isTranslator && $('#entitylist .entity.selected').length && key === 27) {
         if (Pontoon.app.advanced) {
           Pontoon.openFirstEntity();
         } else {
@@ -723,7 +723,7 @@ $(function() {
     }
   });
 
-  var signinSelectors = '#profile .menu li.sign-in, p#sign-in-required > a#sidebar-signin, ul.links > li#sign-in';
+  var signinSelectors = '#profile .menu li.sign-in, #editor #single > menu p.banner > a#sidebar-signin, ul.links > li#sign-in';
 
   if ($(signinSelectors).length) {
     // Asynchronously load Persona to avoid blocking JS execution
