@@ -48,15 +48,17 @@
 
     <div class="static-links">
       {% if not part %}<a href="{{ url('pontoon.translate', locale.code, project.slug, 'all-resources') }}">{% endif %}
-      <div class="all-resources">
-        <span class="title">All Resources</span>
-        <span class="percent"></span>
-      </div>
+      <section class="internal">
+        <div class="all-resources">
+          <span class="title">All Resources</span>
+          <span class="percent"></span>
+        </div>
+      </section>
       {% if not part %}</a>{% endif %}
       {% if part %}
       <a href="{{ url('pontoon.locale.project', locale.code, project.slug) }}">
         <div class="current-localization">
-          <span class="title">Current Localization</span>
+          <span class="title">Current Localization Dashboard</span>
           <span class="percent"></span>
         </div>
       </a>

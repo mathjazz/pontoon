@@ -2507,6 +2507,14 @@ var Pontoon = (function (my) {
       // Make sure part menu is always updated
       $('.project .menu [data-slug="' + slug + '"]').parent().click();
 
+      // Update All Projects menu entry parts
+      var parts = {};
+      parts[this.getSelectedLocale()] = [{
+        title: 'all-resources',
+        resource__path: []
+      }];
+      $('.project .menu .all-projects .name').data('parts', parts);
+
       this.updateGoButton();
     },
 
@@ -2517,8 +2525,13 @@ var Pontoon = (function (my) {
     updatePartMenu: function () {
       var locale = this.getSelectedLocale(),
           parts = this.getProjectData('parts')[locale],
-          currentPart = this.getSelectedPart();
-          part = $.grep(parts, function (e) { return e.title === currentPart; });
+          currentPart = this.getSelectedPart(),
+          part = $.grep(parts, function (e) { return e.title === currentPart; }),
+          allProjects = (this.getSelectedProject() === 'all-projects');
+
+      // Hide parts if All projects selected
+      $('.part .menu .search-wrapper, .part .menu ul').toggle(!allProjects);
+      $('.part .menu .static-links').toggleClass('all-projects', allProjects);
 
       // Fallback if selected part not available for the selected locale & project
       if (!part.length) {
@@ -2584,7 +2597,7 @@ var Pontoon = (function (my) {
       });
 
       // Project menu handler
-      $('.project .menu li:not(".no-match")').click(function (e) {
+      $('.project .menu li:not(".no-match"), .static-links .all-projects').click(function (e) {
         var project = $(this).find('.name'),
             name = project.html(),
             slug = project.data('slug'),
@@ -2769,6 +2782,8 @@ var Pontoon = (function (my) {
     updateProfileMenu: function () {
       $('#profile .admin-current-project a').attr('href', '/admin/projects/' + this.project.slug + '/');
       $('#profile .upload').toggle(this.state.paths && this.user.canTranslate() && this.part !== 'all-resources');
+      $('#profile .download, #profile .upload + .horizontal-separator').toggle(this.project.slug !== 'all-projects');
+
       $('#profile .langpack')
         .toggle(this.project.langpack_url !== '')
         .find('a').attr('href', this.project.langpack_url.replace('{locale_code}', this.locale.code));
@@ -2785,13 +2800,18 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Mark current project & locale and set links
+     * Mark current values and set links
      */
     updateMainMenu: function () {
+      // Mark currect values
+      $('header .menu li').removeClass('current');
       $('.project .menu li .name[data-slug=' + this.project.slug + '], ' +
         '.locale .menu li .language[data-code=' + this.locale.code + ']')
-        .parent().addClass('current').siblings().removeClass('current');
+        .parent().addClass('current');
+      $('.static-links .all-projects')
+        .toggleClass('current', this.project.slug === 'all-projects');
 
+      // Set current links
       $('.static-links .current-team').parent()
         .attr('href', '/' + this.locale.code);
       $('.static-links .current-project').parent()
@@ -3223,10 +3243,10 @@ var Pontoon = (function (my) {
         url: "",
         title: "",
         slug: self.getProjectData('slug'),
-        info: self.getProjectData('info'),
+        info: self.getProjectData('info') || '',
         width: self.getProjectWidth(),
         links: self.getProjectData('links') === 'True' ? true : false,
-        langpack_url: self.getProjectData('langpack_url')
+        langpack_url: self.getProjectData('langpack_url') || ''
       };
 
       this.part = this.getSelectedPart();
@@ -3659,7 +3679,7 @@ var Pontoon = (function (my) {
      */
     getProjectData: function(attribute) {
       var slug = this.getSelectedProject();
-      return $('.project .menu li .name[data-slug=' + slug + ']').data(attribute);
+      return $('.project .menu .name[data-slug=' + slug + ']').data(attribute);
     },
 
 

@@ -597,7 +597,7 @@ class Locale(AggregatedStats):
         """Get a list of available project slugs."""
         return list(
             self.project_set.available().values_list('slug', flat=True)
-        )
+        ) + ['all-projects']
 
     def get_plural_index(self, cldr_plural):
         """Returns plural index for given cldr name."""
@@ -1592,10 +1592,12 @@ class Entity(DirtyFieldsMixin, models.Model):
             entities = entities.with_status_counts(locale).filter(Q(*post_filters))
 
         entities = entities.filter(
-            resource__project=project,
             resource__translatedresources__locale=locale,
             obsolete=False
         )
+
+        if project.slug != 'all-projects':
+            entities = entities.filter(resource__project=project)
 
         # Filter by path
         if paths:
@@ -1782,10 +1784,12 @@ class Translation(DirtyFieldsMixin, models.Model):
         Return Translation QuerySet for given locale, project and paths.
         """
         translations = Translation.objects.filter(
-            entity__resource__project=project,
             entity__obsolete=False,
             locale=locale
         )
+
+        if project.slug != 'all-projects':
+            translations = translations.filter(entity__resource__project=project)
 
         if paths:
             paths = project.parts_to_paths(paths)
@@ -1957,10 +1961,17 @@ class TranslatedResourceQuerySet(models.QuerySet):
         """
         Returns statistics for the given project, paths and locale.
         """
-        return self.filter(
-            resource__project=project,
-            resource__path__in=paths,
-            locale=locale).aggregated_stats()
+        translated_resources = self.filter(
+            locale=locale
+        )
+
+        if project.slug != 'all-projects':
+            translated_resources = translated_resources.filter(
+                resource__project=project,
+                resource__path__in=paths
+            )
+
+        return translated_resources.aggregated_stats()
 
 
 class TranslatedResource(AggregatedStats):

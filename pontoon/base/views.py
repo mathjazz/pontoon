@@ -242,16 +242,20 @@ def locale_project(request, locale, slug):
 def translate(request, locale, slug, part):
     """Translate view."""
     locale = get_object_or_404(Locale, code__iexact=locale)
-    project = get_object_or_404(Project.objects.available(), slug=slug)
-
-    if locale not in project.locales.all():
-        raise Http404
 
     projects = (
         Project.objects.available()
         .prefetch_related('subpage_set')
         .order_by('name')
     )
+
+    if slug.lower() == 'all-projects':
+        project = Project(name='All Projects', slug=slug.lower())
+
+    else:
+        project = get_object_or_404(Project.objects.available(), slug=slug)
+        if locale not in project.locales.all():
+            raise Http404
 
     paths = [part] if part != 'all-resources' else None
     translations = Translation.for_locale_project_paths(locale, project, paths)
@@ -439,8 +443,12 @@ def entities(request):
     except (MultiValueDictKeyError, ValueError) as err:
         return HttpResponseBadRequest('Bad Request: {error}'.format(error=err))
 
-    project = get_object_or_404(Project, slug=project)
     locale = get_object_or_404(Locale, code__iexact=locale)
+
+    if project == 'all-projects':
+        project = Project(slug=project)
+    else:
+        project = get_object_or_404(Project, slug=project)
 
     status = request.POST.get('status', '')
     extra = request.POST.get('extra', '')
