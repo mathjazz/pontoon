@@ -515,7 +515,6 @@ def entities(request):
 
         has_next = entities_page.has_next()
         entities_to_map = entities_page.object_list
-
         # If requested entity not on the first page
         entity = request.POST.get('entity', None)
         if entity:
@@ -535,8 +534,8 @@ def entities(request):
         'entities': Entity.map_entities(locale, entities_to_map, visible_entities),
         'has_next': has_next,
         'stats': TranslatedResource.objects.stats(project, paths, locale),
-        'authors': translations.authors().serialize(),
-        'counts_per_minute': translations.counts_per_minute(),
+        'authors': Translation.objects.cached_filters_authors(locale, project, paths),
+        'counts_per_minute': Translation.objects.cached_counts_per_minute(locale, project, paths)
     }, safe=False)
 
 

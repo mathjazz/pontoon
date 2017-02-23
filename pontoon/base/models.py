@@ -13,6 +13,7 @@ from dirtyfields import DirtyFieldsMixin
 from django.conf import settings
 from django.contrib.auth.models import User, Group, UserManager
 from django.contrib.postgres.fields import ArrayField
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.validators import validate_email
@@ -31,7 +32,7 @@ from pontoon.sync.vcs.repositories import (
     update_from_vcs,
     PullFromRepositoryException,
 )
-from pontoon.base import utils
+from pontoon.base import utils, locales
 from pontoon.sync import KEY_SEPARATOR
 
 from urlparse import urlparse
@@ -453,7 +454,7 @@ class Locale(AggregatedStats):
         (5, 'other'),
     )
 
-    cldr_plurals = models.CharField(
+    cldr_plurals = models.CommaSeparatedIntegerField(
         "CLDR Plurals",
         blank=True,
         max_length=11,
@@ -1376,14 +1377,22 @@ class EntityQuerySet(models.QuerySet):
     def filter_statuses(self, locale, statuses):
         sanitized_statuses = filter(lambda s: s in self.user_entity_filters, statuses)
         if sanitized_statuses:
-            return reduce(lambda x, y: x | y, [getattr(Entity.objects, s)() for s in sanitized_statuses])
+            # @TODO: move it into separate methods
+            if settings.NEW_FILTERS_LOCALES:
+                return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_status'.format(locale.code.lower().replace('-','_')): s}) for s in sanitized_statuses])
+            else:
+                return reduce(lambda x, y: x | y, [getattr(Entity.objects, s)() for s in sanitized_statuses])
         return Q()
 
     def filter_extra(self, locale, extra):
         sanitized_extras = filter(lambda f: f in self.user_extra_filters, extra)
 
         if sanitized_extras:
-            return reduce(lambda x, y: x | y, [getattr(Entity.objects, s.replace('-', '_'))() for s in sanitized_extras])
+            # @TODO: move it into separete methods
+            if settings.NEW_FILTERS_LOCALES:
+                return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_{}'.format(locale.code.lower().replace('-', '_'),s.replace('-', '_')): True}) for s in sanitized_extras])
+            else:
+                return reduce(lambda x, y: x | y, [getattr(Entity.objects, s.replace('-', '_'))() for s in sanitized_extras])
         return Q()
 
     def with_status_counts(self, locale):
@@ -1430,7 +1439,7 @@ class EntityQuerySet(models.QuerySet):
                         translation__plural_form__isnull=False, translation__string=F('string_plural')), then=1
                     ), output_field=models.IntegerField(), default=0
                 )
-            )
+            ),
         )
 
     def missing(self):
@@ -1482,8 +1491,7 @@ class EntityQuerySet(models.QuerySet):
                 to_attr='fetched_translations'
             )
         )
-
-
+    
 class Entity(DirtyFieldsMixin, models.Model):
     resource = models.ForeignKey(Resource, related_name='entities')
     string = models.TextField()
@@ -1493,7 +1501,7 @@ class Entity(DirtyFieldsMixin, models.Model):
     order = models.PositiveIntegerField(default=0)
     source = JSONField(blank=True, default=list)  # List of paths to source code files
     obsolete = models.BooleanField(default=False)
-
+    
     changed_locales = models.ManyToManyField(
         Locale,
         through='ChangedEntityLocale',
@@ -1522,9 +1530,10 @@ class Entity(DirtyFieldsMixin, models.Model):
 
         return key
 
+    
     def __unicode__(self):
         return self.string
-
+    
     def has_changed(self, locale):
         """
         Check if translations in the given locale have changed since the
@@ -1596,7 +1605,10 @@ class Entity(DirtyFieldsMixin, models.Model):
             post_filters.append(Entity.objects.filter_extra(locale, extra.split(',')))
 
         if post_filters:
-            entities = entities.with_status_counts(locale).filter(Q(*post_filters))
+            if settings.NEW_FILTERS_LOCALES:
+                entities = entities.filter(*post_filters)
+            else:
+                entities = entities.with_status_counts(locale).filter(Q(*post_filters))
 
         entities = entities.filter(
             resource__translatedresources__locale=locale,
@@ -1675,6 +1687,87 @@ class ChangedEntityLocale(models.Model):
 
     class Meta:
         unique_together = ('entity', 'locale')
+        
+
+class EntityFiltersManager(models.Manager):
+    def update_filters_state(self, entity, locale):
+        """
+        Update state of filters of entity for a given locale.
+        """
+        filters_instance = self.get_queryset().get(entity=entity)
+
+        forms_count = locale.nplurals if entity.string_plural else 1
+        translations = entity.translation_set.filter(locale=locale).values_list('string', 'approved', 'fuzzy')
+
+        def set_field(field_name, value):
+            setattr(filters_instance, '{}_{}'.format(locale.code, field_name), value)
+
+        set_field('status', self.get_entity_status(translations, locale))
+        set_field('unchanged', self.is_unchanged(entity, translations, forms_count))
+        set_field('has_suggestions', self.has_suggestions(translations))
+        filters_instance.save()
+
+    def get_entity_status(self, translations, forms_count):
+        """
+        Calculate current status of an entity.
+        """
+
+        if forms_count == len([1 for _, approved, _ in translations if approved]):
+            return 'translated'
+
+        elif forms_count == len([1 for _, _, fuzzy in translations if fuzzy]):
+            return 'fuzzy'
+
+        elif len([1 for _, approved, fuzzy in translations if not approved and not fuzzy]):
+            return 'suggested'
+
+        return 'missing'
+
+    def is_unchanged(self, entity, translations, forms_count):
+        """
+        Checks if entity has been changed.
+        """
+        strings = [s for s, _, _ in translations]
+        same_string = entity.string in strings
+        if same_string and forms_count > 1:
+            return entity.string_plural in strings
+        return same_string
+
+    def has_suggestions(self, translations):
+        return bool(len([1 for _, approved, fuzzy in translations if not approved and not fuzzy]))
+
+
+class EntityFilters(models.Model):
+    """
+    EntityFilters contains computed filters for every value.
+    Because of the performance reasons, every entity has one additional row in database
+    """
+    entity = models.ForeignKey(Entity)
+    status_choices = (
+        ('missing', 'missing'),
+        ('fuzzy', 'fuzzy'),
+        ('translated', 'translated'),
+        ('suggested', 'suggested')
+    )
+    extra_filters = (
+        'unchanged',
+        'has_suggestions'
+    )
+
+    objects = EntityFiltersManager()
+
+
+for locale_code in locales.CODES:
+    code = locale_code.lower().replace('-', '_')
+    EntityFilters.add_to_class('{}_status'.format(code), models.CharField(
+        max_length=10,
+        choices=EntityFilters.status_choices,
+        db_index=True,
+        null=True,
+        )
+    )
+    for filter_ in EntityFilters.extra_filters:
+        EntityFilters.add_to_class('{}_{}'.format(code, filter_), models.NullBooleanField(db_index=True, null=True))
 
 
 def extra_default():
@@ -1757,6 +1850,40 @@ class TranslationQuerySet(models.QuerySet):
                 period['count']
             ])
         return data
+
+    def _cache_key(self, prefix, locale, project, paths):
+        return '{prefix}_{name}_{code}_[{paths}]'.format(
+            prefix=prefix,
+            name=project.slug,
+            code=locale.code,
+            paths=','.join(sorted(paths or []))
+        )
+
+    def cached_counts_per_minute(self, locale, project, paths, ignore_cache=False):
+        """
+        Return serialized counts of translations (per-minute) from cache.
+        """
+        cache_key = self._cache_key('counts_per_minute', locale, project, paths)
+        counts = cache.get(cache_key)
+
+        if not counts or ignore_cache:
+            counts = Translation.for_locale_project_paths(locale, project, paths).counts_per_minute()
+            cache.set(cache_key, counts, settings.CACHE_FILTERS_COUNTS_TIMEOUT)
+
+        return counts
+
+    def cached_filters_authors(self, locale, project, paths, ignore_cache=False):
+        """
+        Return serialized authors of translations from cache.
+        """
+        cache_key = self._cache_key('filters_authors', locale, project, paths)
+        authors = cache.get(cache_key)
+
+        if not authors or ignore_cache:
+            authors = Translation.for_locale_project_paths(locale, project, paths).authors().serialize()
+            cache.set(cache_key, authors, settings.CACHE_FILTERS_AUTHORS_TIMEOUT)
+
+        return authors
 
 
 class Translation(DirtyFieldsMixin, models.Model):

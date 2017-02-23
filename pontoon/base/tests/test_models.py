@@ -14,6 +14,7 @@ from mock import call, Mock, patch
 
 from pontoon.base.models import (
     Entity,
+    Locale,
     ProjectLocale,
     TranslationMemoryEntry,
     User
@@ -1108,8 +1109,8 @@ class EntityFilterTests(TestCase):
     Tests all filters provided by the entity manager.
     """
     def setUp(self):
-        self.locale = LocaleFactory.create()
-        self.plural_locale = LocaleFactory.create(cldr_plurals='1,5')
+        self.locale = Locale.objects.get(code='en-GB')
+        self.plural_locale = Locale.objects.get(code='de')
 
     def test_translated(self):
         first_entity, second_entity, third_entity = EntityFactory.create_batch(3)

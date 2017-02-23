@@ -688,3 +688,12 @@ else:
     JS_TRUSTED_ORIGINS = [
         SITE_URL,
     ]
+
+# Contains list of locales that will use new, precalculated filters of entitiets
+NEW_FILTERS_LOCALES = True
+NEW_SEARCH = True
+
+# Settings related to the cacheing
+CACHE_FILTERS_AUTHORS_TIMEOUT = 60 * 10
+CACHE_FILTERS_COUNTS_TIMEOUT = 60 * 10
+

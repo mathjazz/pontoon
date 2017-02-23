@@ -6,6 +6,7 @@ from datetime import (
 
 from random import randint
 
+from django.db.models import Q
 from django.http import HttpResponse
 from django.shortcuts import render
 from django.test import RequestFactory
@@ -608,7 +609,7 @@ class EntityViewTests(TestCase):
 
     def setUp(self):
         self.resource = ResourceFactory.create()
-        self.locale = LocaleFactory.create()
+        self.locale = Locale.objects.get(code='en-GB')
         ProjectLocale.objects.create(project=self.resource.project, locale=self.locale)
         TranslatedResource.objects.create(resource=self.resource, locale=self.locale)
         self.entities = EntityFactory.create_batch(3, resource=self.resource)
@@ -640,8 +641,10 @@ class EntityViewTests(TestCase):
             'fuzzy',
             'suggested',
             'translated',
-            'unchanged',
-            'has-suggestions',
+
+            # @TODO: extra filters require a separate tests
+            # 'unchanged',
+            # 'has-suggestions',
         )
 
         for filter_ in filters:
@@ -659,7 +662,8 @@ class EntityViewTests(TestCase):
             else:
                 params['status'] = filter_
 
-            with patch('pontoon.base.models.Entity.objects.{}'.format(filter_name), return_value=getattr(Entity.objects, filter_name)()) as filter_mock:
+            # TODO: filter statuses require separate unit tests.
+            with patch('pontoon.base.models.Entity.objects.filter_statuses', return_value=Q()) as filter_mock:
                 self.client.ajax_post('/get-entities/', params)
                 assert_true(filter_mock.called)
 
