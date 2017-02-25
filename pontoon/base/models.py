@@ -1377,88 +1377,15 @@ class EntityQuerySet(models.QuerySet):
     def filter_statuses(self, locale, statuses):
         sanitized_statuses = filter(lambda s: s in self.user_entity_filters, statuses)
         if sanitized_statuses:
-            # @TODO: move it into separate methods
-            if settings.NEW_FILTERS_LOCALES:
-                return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_status'.format(locale.code.lower().replace('-','_')): s}) for s in sanitized_statuses])
-            else:
-                return reduce(lambda x, y: x | y, [getattr(Entity.objects, s)() for s in sanitized_statuses])
+            return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_status'.format(locale.code.lower().replace('-','_')): s}) for s in sanitized_statuses])
         return Q()
 
     def filter_extra(self, locale, extra):
         sanitized_extras = filter(lambda f: f in self.user_extra_filters, extra)
 
         if sanitized_extras:
-            # @TODO: move it into separete methods
-            if settings.NEW_FILTERS_LOCALES:
-                return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_{}'.format(locale.code.lower().replace('-', '_'),s.replace('-', '_')): True}) for s in sanitized_extras])
-            else:
-                return reduce(lambda x, y: x | y, [getattr(Entity.objects, s.replace('-', '_'))() for s in sanitized_extras])
+            return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_{}'.format(locale.code.lower().replace('-', '_'), s.replace('-', '_')): True}) for s in sanitized_extras])
         return Q()
-
-    def with_status_counts(self, locale):
-        """
-        Helper method that returns a set with annotation of following fields:
-            * approved_count - a number of approved translations in the entity.
-            * fuzzy_count - a number of fuzzy translations in the antity
-            * suggested_count - a number of translations assigned do the entity.
-            * expected_count - a number of translations that should cover entity.
-            * unchanged_count - a number of translations that have the same string as the entity.
-        """
-        return self.annotate(
-            approved_count=Sum(
-                Case(
-                    When(
-                        Q(translation__approved=True, translation__fuzzy=False, translation__locale=locale), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            fuzzy_count=Sum(
-                Case(
-                    When(
-                        Q(translation__fuzzy=True, translation__approved=False, translation__locale=locale), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            suggested_count=Sum(
-                Case(
-                    When(
-                        Q(translation__locale=locale, translation__approved=False, translation__fuzzy=False), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            expected_count=Case(
-                When(
-                    Q(string_plural__isnull=True) | Q(string_plural=""), then=1
-                ), output_field=models.IntegerField(), default=locale.nplurals
-            ),
-            unchanged_count=Sum(
-                Case(
-                    When(
-                    Q(translation__locale=locale, translation__string=F('string')) |\
-                    Q(translation__locale=locale, translation__plural_form__gt=-1,
-                        translation__plural_form__isnull=False, translation__string=F('string_plural')), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-        )
-
-    def missing(self):
-        return Q(approved_count__lt=F('expected_count')) & Q(fuzzy_count__lt=F('expected_count')) & Q(suggested_count__lt=F('expected_count'))
-
-    def fuzzy(self):
-        return Q(fuzzy_count=F('expected_count')) & ~Q(approved_count=F('expected_count'))
-
-    def suggested(self):
-        return Q(suggested_count__gt=0) & ~Q(fuzzy_count=F('expected_count')) & ~Q(approved_count=F('expected_count'))
-
-    def translated(self):
-        return Q(approved_count=F('expected_count'))
-
-    def has_suggestions(self):
-        return Q(suggested_count__gt=0)
-
-    def unchanged(self):
-        return Q(unchanged_count=F('expected_count'))
 
     def authored_by(self, locale, emails):
         def is_email(email):
@@ -1605,10 +1532,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             post_filters.append(Entity.objects.filter_extra(locale, extra.split(',')))
 
         if post_filters:
-            if settings.NEW_FILTERS_LOCALES:
-                entities = entities.filter(*post_filters)
-            else:
-                entities = entities.with_status_counts(locale).filter(Q(*post_filters))
+            entities = entities.filter(*post_filters)
 
         entities = entities.filter(
             resource__translatedresources__locale=locale,
