@@ -13,6 +13,7 @@ from dirtyfields import DirtyFieldsMixin
 from django.conf import settings
 from django.contrib.auth.models import User, Group, UserManager
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.search import SearchVectorField
 from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
@@ -42,7 +43,7 @@ log = logging.getLogger('pontoon')
 
 
 # User class extensions
-class UserTranslationsManager(models.Manager):
+class UserTranslationsManager(UserManager):
     """
     Provides various method to interact with larger sets of translations and their stats for user.
     """
@@ -454,7 +455,7 @@ class Locale(AggregatedStats):
         (5, 'other'),
     )
 
-    cldr_plurals = models.CommaSeparatedIntegerField(
+    cldr_plurals = models.CharField(
         "CLDR Plurals",
         blank=True,
         max_length=11,
@@ -1418,7 +1419,7 @@ class EntityQuerySet(models.QuerySet):
                 to_attr='fetched_translations'
             )
         )
-    
+
 class Entity(DirtyFieldsMixin, models.Model):
     resource = models.ForeignKey(Resource, related_name='entities')
     string = models.TextField()
@@ -1428,7 +1429,8 @@ class Entity(DirtyFieldsMixin, models.Model):
     order = models.PositiveIntegerField(default=0)
     source = JSONField(blank=True, default=list)  # List of paths to source code files
     obsolete = models.BooleanField(default=False)
-    
+
+    search_index = SearchVectorField(null=True)
     changed_locales = models.ManyToManyField(
         Locale,
         through='ChangedEntityLocale',
@@ -1457,10 +1459,10 @@ class Entity(DirtyFieldsMixin, models.Model):
 
         return key
 
-    
+
     def __unicode__(self):
         return self.string
-    
+
     def has_changed(self, locale):
         """
         Check if translations in the given locale have changed since the
@@ -1549,11 +1551,9 @@ class Entity(DirtyFieldsMixin, models.Model):
 
         # Filter by search parameters
         if search:
-            search_query = Q(**{'string__icontains': search})
-            search_query |= Q(**{'string_plural__icontains': search})
-            search_query |= Q(**{'translation__string__icontains': search, 'translation__locale': locale})
-            search_query |= Q(**{'comment__icontains': search})
-            search_query |= Q(**{'key__icontains': search})
+            search_query = Q(search_index=search)
+            search_query |= Q(translation__search_index=search, translation__locale=locale)
+
             # https://docs.djangoproject.com/en/dev/topics/db/queries/#spanning-multi-valued-relationships
             entities = Entity.objects.filter(search_query, pk__in=entities).distinct()
 
@@ -1611,7 +1611,7 @@ class ChangedEntityLocale(models.Model):
 
     class Meta:
         unique_together = ('entity', 'locale')
-        
+
 
 class EntityFiltersManager(models.Manager):
     def update_filters_state(self, entity, locale):
@@ -1831,6 +1831,7 @@ class Translation(DirtyFieldsMixin, models.Model):
     objects = TranslationQuerySet.as_manager()
     NotAllowed = TranslationNotAllowed
 
+    search_index = SearchVectorField(null=True)
     # extra stores data that we want to save for the specific format
     # this translation is stored in, but that we otherwise don't care
     # about.
