@@ -13,6 +13,8 @@ from dirtyfields import DirtyFieldsMixin
 from django.conf import settings
 from django.contrib.auth.models import User, Group, UserManager
 from django.contrib.postgres.fields import ArrayField
+from django.contrib.postgres.search import SearchVectorField
+from django.core.cache import cache
 from django.core.exceptions import ValidationError
 from django.core.urlresolvers import reverse
 from django.core.validators import validate_email
@@ -31,7 +33,7 @@ from pontoon.sync.vcs.repositories import (
     update_from_vcs,
     PullFromRepositoryException,
 )
-from pontoon.base import utils
+from pontoon.base import utils, locales
 from pontoon.sync import KEY_SEPARATOR
 
 from urlparse import urlparse
@@ -41,7 +43,7 @@ log = logging.getLogger('pontoon')
 
 
 # User class extensions
-class UserTranslationsManager(models.Manager):
+class UserTranslationsManager(UserManager):
     """
     Provides various method to interact with larger sets of translations and their stats for user.
     """
@@ -1376,80 +1378,15 @@ class EntityQuerySet(models.QuerySet):
     def filter_statuses(self, locale, statuses):
         sanitized_statuses = filter(lambda s: s in self.user_entity_filters, statuses)
         if sanitized_statuses:
-            return reduce(lambda x, y: x | y, [getattr(Entity.objects, s)() for s in sanitized_statuses])
+            return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_status'.format(locale.code.lower().replace('-','_')): s}) for s in sanitized_statuses])
         return Q()
 
     def filter_extra(self, locale, extra):
         sanitized_extras = filter(lambda f: f in self.user_extra_filters, extra)
 
         if sanitized_extras:
-            return reduce(lambda x, y: x | y, [getattr(Entity.objects, s.replace('-', '_'))() for s in sanitized_extras])
+            return reduce(lambda x, y: x | y, [Q(**{'entityfilters__{}_{}'.format(locale.code.lower().replace('-', '_'), s.replace('-', '_')): True}) for s in sanitized_extras])
         return Q()
-
-    def with_status_counts(self, locale):
-        """
-        Helper method that returns a set with annotation of following fields:
-            * approved_count - a number of approved translations in the entity.
-            * fuzzy_count - a number of fuzzy translations in the antity
-            * suggested_count - a number of translations assigned do the entity.
-            * expected_count - a number of translations that should cover entity.
-            * unchanged_count - a number of translations that have the same string as the entity.
-        """
-        return self.annotate(
-            approved_count=Sum(
-                Case(
-                    When(
-                        Q(translation__approved=True, translation__fuzzy=False, translation__locale=locale), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            fuzzy_count=Sum(
-                Case(
-                    When(
-                        Q(translation__fuzzy=True, translation__approved=False, translation__locale=locale), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            suggested_count=Sum(
-                Case(
-                    When(
-                        Q(translation__locale=locale, translation__approved=False, translation__fuzzy=False), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            ),
-            expected_count=Case(
-                When(
-                    Q(string_plural__isnull=True) | Q(string_plural=""), then=1
-                ), output_field=models.IntegerField(), default=locale.nplurals
-            ),
-            unchanged_count=Sum(
-                Case(
-                    When(
-                    Q(translation__locale=locale, translation__string=F('string')) |\
-                    Q(translation__locale=locale, translation__plural_form__gt=-1,
-                        translation__plural_form__isnull=False, translation__string=F('string_plural')), then=1
-                    ), output_field=models.IntegerField(), default=0
-                )
-            )
-        )
-
-    def missing(self):
-        return Q(approved_count__lt=F('expected_count')) & Q(fuzzy_count__lt=F('expected_count')) & Q(suggested_count__lt=F('expected_count'))
-
-    def fuzzy(self):
-        return Q(fuzzy_count=F('expected_count')) & ~Q(approved_count=F('expected_count'))
-
-    def suggested(self):
-        return Q(suggested_count__gt=0) & ~Q(fuzzy_count=F('expected_count')) & ~Q(approved_count=F('expected_count'))
-
-    def translated(self):
-        return Q(approved_count=F('expected_count'))
-
-    def has_suggestions(self):
-        return Q(suggested_count__gt=0)
-
-    def unchanged(self):
-        return Q(unchanged_count=F('expected_count'))
 
     def authored_by(self, locale, emails):
         def is_email(email):
@@ -1483,7 +1420,6 @@ class EntityQuerySet(models.QuerySet):
             )
         )
 
-
 class Entity(DirtyFieldsMixin, models.Model):
     resource = models.ForeignKey(Resource, related_name='entities')
     string = models.TextField()
@@ -1494,6 +1430,7 @@ class Entity(DirtyFieldsMixin, models.Model):
     source = JSONField(blank=True, default=list)  # List of paths to source code files
     obsolete = models.BooleanField(default=False)
 
+    search_index = SearchVectorField(null=True)
     changed_locales = models.ManyToManyField(
         Locale,
         through='ChangedEntityLocale',
@@ -1521,6 +1458,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             key = ''
 
         return key
+
 
     def __unicode__(self):
         return self.string
@@ -1596,7 +1534,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             post_filters.append(Entity.objects.filter_extra(locale, extra.split(',')))
 
         if post_filters:
-            entities = entities.with_status_counts(locale).filter(Q(*post_filters))
+            entities = entities.filter(*post_filters)
 
         entities = entities.filter(
             resource__translatedresources__locale=locale,
@@ -1613,11 +1551,9 @@ class Entity(DirtyFieldsMixin, models.Model):
 
         # Filter by search parameters
         if search:
-            search_query = Q(**{'string__icontains': search})
-            search_query |= Q(**{'string_plural__icontains': search})
-            search_query |= Q(**{'translation__string__icontains': search, 'translation__locale': locale})
-            search_query |= Q(**{'comment__icontains': search})
-            search_query |= Q(**{'key__icontains': search})
+            search_query = Q(search_index=search)
+            search_query |= Q(translation__search_index=search, translation__locale=locale)
+
             # https://docs.djangoproject.com/en/dev/topics/db/queries/#spanning-multi-valued-relationships
             entities = Entity.objects.filter(search_query, pk__in=entities).distinct()
 
@@ -1675,6 +1611,104 @@ class ChangedEntityLocale(models.Model):
 
     class Meta:
         unique_together = ('entity', 'locale')
+
+
+class EntityFiltersManager(models.Manager):
+    use_in_migrations = True
+
+    def update_filters_state(self, entity, locale, instance=None, commit=True):
+        """
+        Update state of filters of entity for a given locale.
+        """
+        filters_instance = instance or self.get_queryset().get(entity=entity)
+        locale_code = locale.code.lower().replace('-', '_')
+        forms_count = (len(locale.cldr_plurals.split(',')) or 1 ) if entity.string_plural else 1
+
+        if hasattr(entity, 'prefetched_translations'):
+            translations = [(t.string, t.approved, t.fuzzy) for t in entity.prefetched_translations if t.locale == locale]
+        else:
+            translations = entity.translation_set.filter(locale=locale).values_list('string', 'approved', 'fuzzy')
+
+        def field_name(field_name):
+            return '{}_{}'.format(locale_code, field_name)
+
+        def set_field(field, value):
+            setattr(filters_instance, field_name(field), value)
+
+        set_field('status', self.get_entity_status(translations, locale))
+        set_field('unchanged', self.is_unchanged(entity, translations, forms_count))
+        set_field('has_suggestions', self.has_suggestions(translations))
+
+        if commit:
+            filters_instance.save(
+                update_fields=[
+                    field_name('status'),
+                    field_name('unchanged'),
+                    field_name('has_suggestions'),
+                ]
+            )
+        return entity
+
+    def get_entity_status(self, translations, forms_count):
+        """
+        Calculate current status of an entity.
+        """
+        if forms_count == len([1 for _, approved, _ in translations if approved]):
+            return 'translated'
+
+        elif forms_count == len([1 for _, _, fuzzy in translations if fuzzy]):
+            return 'fuzzy'
+
+        elif len([1 for _, approved, fuzzy in translations if not approved and not fuzzy]):
+            return 'suggested'
+
+        return 'missing'
+
+    def is_unchanged(self, entity, translations, forms_count):
+        """
+        Checks if entity has been changed.
+        """
+        strings = [s for s, approved, _ in translations if approved]
+        same_string = entity.string in strings
+        if same_string and forms_count > 1:
+            return entity.string_plural in strings
+        return same_string
+
+    def has_suggestions(self, translations):
+        return bool(len([1 for _, approved, fuzzy in translations if not approved and not fuzzy]))
+
+
+class EntityFilters(models.Model):
+    """
+    EntityFilters contains computed filters for every value.
+    Because of the performance reasons, every entity has one additional row in database
+    """
+    entity = models.ForeignKey(Entity)
+    status_choices = (
+        ('missing', 'missing'),
+        ('fuzzy', 'fuzzy'),
+        ('translated', 'translated'),
+        ('suggested', 'suggested')
+    )
+    extra_filters = (
+        'unchanged',
+        'has_suggestions'
+    )
+
+    objects = EntityFiltersManager()
+
+
+for locale_code in locales.CODES:
+    code = locale_code.lower().replace('-', '_')
+    EntityFilters.add_to_class('{}_status'.format(code), models.CharField(
+        max_length=10,
+        choices=EntityFilters.status_choices,
+        db_index=True,
+        null=True,
+        )
+    )
+    for filter_ in EntityFilters.extra_filters:
+        EntityFilters.add_to_class('{}_{}'.format(code, filter_), models.NullBooleanField(db_index=True, null=True))
 
 
 def extra_default():
@@ -1758,6 +1792,40 @@ class TranslationQuerySet(models.QuerySet):
             ])
         return data
 
+    def _cache_key(self, prefix, locale, project, paths):
+        return '{prefix}_{name}_{code}_[{paths}]'.format(
+            prefix=prefix,
+            name=project.slug,
+            code=locale.code,
+            paths=','.join(sorted(paths or []))
+        )
+
+    def cached_counts_per_minute(self, locale, project, paths, ignore_cache=False):
+        """
+        Return serialized counts of translations (per-minute) from cache.
+        """
+        cache_key = self._cache_key('counts_per_minute', locale, project, paths)
+        counts = cache.get(cache_key)
+
+        if not counts or ignore_cache:
+            counts = Translation.for_locale_project_paths(locale, project, paths).counts_per_minute()
+            cache.set(cache_key, counts, settings.CACHE_FILTERS_COUNTS_TIMEOUT)
+
+        return counts
+
+    def cached_filters_authors(self, locale, project, paths, ignore_cache=False):
+        """
+        Return serialized authors of translations from cache.
+        """
+        cache_key = self._cache_key('filters_authors', locale, project, paths)
+        authors = cache.get(cache_key)
+
+        if not authors or ignore_cache:
+            authors = Translation.for_locale_project_paths(locale, project, paths).authors().serialize()
+            cache.set(cache_key, authors, settings.CACHE_FILTERS_AUTHORS_TIMEOUT)
+
+        return authors
+
 
 class Translation(DirtyFieldsMixin, models.Model):
     entity = models.ForeignKey(Entity)
@@ -1780,6 +1848,7 @@ class Translation(DirtyFieldsMixin, models.Model):
     objects = TranslationQuerySet.as_manager()
     NotAllowed = TranslationNotAllowed
 
+    search_index = SearchVectorField(null=True)
     # extra stores data that we want to save for the specific format
     # this translation is stored in, but that we otherwise don't care
     # about.

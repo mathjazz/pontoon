@@ -688,3 +688,8 @@ else:
     JS_TRUSTED_ORIGINS = [
         SITE_URL,
     ]
+
+# Settings related to the cacheing
+CACHE_FILTERS_AUTHORS_TIMEOUT = 60 * 10
+CACHE_FILTERS_COUNTS_TIMEOUT = 60 * 10
+

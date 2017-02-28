@@ -4,11 +4,11 @@
   "description": "Mozilla in-place localization tool.",
   "private": true,
   "dependencies": {
-    "babel": "6.23.0",
+    "babel": "^5.4.3",
     "yuglify": "0.1.4"
   },
   "engines": {
-    "node": "6.9.5"
+    "node": "0.12.2"
   },
   "repository": {
     "type": "git",

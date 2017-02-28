@@ -8,6 +8,9 @@ from django.dispatch import receiver
 
 from pontoon.base import errors
 from pontoon.base.models import (
+    Entity,
+    EntityFilters,
+    Translation,
     Locale,
     Project,
     ProjectLocale,
@@ -23,6 +26,7 @@ def project_locale_removed(sender, **kwargs):
     and aggregate project and locale stats.
     """
     project_locale = kwargs.get('instance', None)
+
     if project_locale is not None:
         project = project_locale.project
         locale = project_locale.locale
@@ -156,3 +160,20 @@ def assign_project_locale_group_permissions(sender, **kwargs):
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         UserProfile.objects.create(user=instance)
+
+
+@receiver(post_save, sender=Entity)
+def create_filters(sender, instance, created, **kwargs):
+    """
+    Every entity requires have a single instance of entity filters.
+    """
+    if created:
+        EntityFilters.objects.get_or_create(entity=instance)
+
+
+@receiver(post_save, sender=Translation)
+def update_entity_filters(sender, instance, created, **kwargs):
+    """
+    A change in translations require update of filters for a single entity.
+    """
+    EntityFilters.objects.update_filters_state(instance.entity, instance.locale)
