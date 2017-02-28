@@ -68,11 +68,7 @@ class UpdateSearchIndex(BaseSearchOperation):
                 new.{index_field} = {vectors};
             END IF;
             IF TG_OP = 'UPDATE' THEN
-                IF {fts_fields} THEN
-                    new.{index_field} = {vectors};
-                ELSE
-                    new.{index_field} = old.{index_field};
-                END IF;
+                new.{index_field} = {vectors};
             END IF;
         RETURN NEW;
         END;
@@ -107,8 +103,8 @@ class UpdateSearchIndex(BaseSearchOperation):
                 field=field,
             )
 
+        fts_fields = ' OR '.join(map(get_if_changed_sql, self.from_fields + ['search_index']))
         vectors = ' || '.join(map(get_vector_sql, self.from_fields))
-        fts_fields = ' OR '.join(map(get_if_changed_sql, self.from_fields))
 
         schema_editor.execute(
             self.create_sql.format(

@@ -1614,28 +1614,45 @@ class ChangedEntityLocale(models.Model):
 
 
 class EntityFiltersManager(models.Manager):
-    def update_filters_state(self, entity, locale):
+    use_in_migrations = True
+
+    def update_filters_state(self, entity, locale, instance=None, commit=True):
         """
         Update state of filters of entity for a given locale.
         """
-        filters_instance = self.get_queryset().get(entity=entity)
+        filters_instance = instance or self.get_queryset().get(entity=entity)
+        locale_code = locale.code.lower().replace('-', '_')
+        forms_count = (len(locale.cldr_plurals.split(',')) or 1 ) if entity.string_plural else 1
 
-        forms_count = locale.nplurals if entity.string_plural else 1
-        translations = entity.translation_set.filter(locale=locale).values_list('string', 'approved', 'fuzzy')
+        if hasattr(entity, 'prefetched_translations'):
+            translations = [(t.string, t.approved, t.fuzzy) for t in entity.prefetched_translations if t.locale == locale]
+        else:
+            translations = entity.translation_set.filter(locale=locale).values_list('string', 'approved', 'fuzzy')
 
-        def set_field(field_name, value):
-            setattr(filters_instance, '{}_{}'.format(locale.code, field_name), value)
+        def field_name(field_name):
+            return '{}_{}'.format(locale_code, field_name)
+
+        def set_field(field, value):
+            setattr(filters_instance, field_name(field), value)
 
         set_field('status', self.get_entity_status(translations, locale))
         set_field('unchanged', self.is_unchanged(entity, translations, forms_count))
         set_field('has_suggestions', self.has_suggestions(translations))
-        filters_instance.save()
+
+        if commit:
+            filters_instance.save(
+                update_fields=[
+                    field_name('status'),
+                    field_name('unchanged'),
+                    field_name('has_suggestions'),
+                ]
+            )
+        return entity
 
     def get_entity_status(self, translations, forms_count):
         """
         Calculate current status of an entity.
         """
-
         if forms_count == len([1 for _, approved, _ in translations if approved]):
             return 'translated'
 
@@ -1651,7 +1668,7 @@ class EntityFiltersManager(models.Manager):
         """
         Checks if entity has been changed.
         """
-        strings = [s for s, _, _ in translations]
+        strings = [s for s, approved, _ in translations if approved]
         same_string = entity.string in strings
         if same_string and forms_count > 1:
             return entity.string_plural in strings

@@ -6,6 +6,11 @@ from django.db import migrations
 
 from pontoon.base.search_migrations import CreateGINIndex, UpdateSearchIndex
 
+def ts_vector(fieldname):
+    """Small helper to generate to_tsvector function in SQL."""
+    return "to_tsvector('simple', COALESCE({field}, ''))".format(field=fieldname)
+
+
 class Migration(migrations.Migration):
 
     dependencies = [
@@ -17,4 +22,21 @@ class Migration(migrations.Migration):
         CreateGINIndex('base_translation', 'search_index'),
         UpdateSearchIndex('base_entity', 'search_index', ['string', 'string_plural', 'comment', 'key']),
         UpdateSearchIndex('base_translation', 'search_index', ['string']),
+
+        # We have to update existing search indexes after we created triggers.
+        migrations.RunSQL(
+            "UPDATE base_entity SET search_index=({})".format(
+                ' || '.join([
+                    ts_vector('string'),
+                    ts_vector('string_plural'),
+                    ts_vector('comment'),
+                    ts_vector('key')
+                ])
+            ),
+            "UPDATE base_entity SET search_index=NULL"
+        ),
+        migrations.RunSQL(
+            "UPDATE base_translation SET search_index={}".format(ts_vector('string')),
+            "UPDATE base_translation SET search_index=NULL"
+        )
     ]
