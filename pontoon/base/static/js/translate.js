@@ -656,9 +656,13 @@ var Pontoon = (function (my) {
 
       // FTL: Complex original string and translation
       self.fluent.toggleOriginal();
-      self.fluent.toggleEditor(translation.isComplexFTL || (entity.isComplexFTL && !translation.pk));
-      // TODO: Uncomment once source view support is implemented
-      // self.fluent.toggleButton();
+      self.fluent.toggleEditor();
+
+      if (self.fluent.isFTLEditorEnabled()) {
+        self.fluent.renderEditor();
+      }
+
+      self.fluent.toggleButton();
 
       self.updateHelpers();
       self.pushState();
@@ -1810,7 +1814,7 @@ var Pontoon = (function (my) {
        * - Czech Windows keyboard: Ctrl + Alt + C/F/./,
        * - Polish keyboard: Alt + C
        */
-      $('#editor').on('keydown', '#translation, #ftl-area input', function (e) {
+      $('#editor').on('keydown', 'textarea, #ftl-area input', function (e) {
         var key = e.which;
 
         // Prevent triggering unnecessary events in 1-column layout
@@ -1857,7 +1861,7 @@ var Pontoon = (function (my) {
         if (!$('.menu').is(':visible') && key === 9 && !e.ctrlKey) {
 
           // Prevent in complex FTL mode
-          if ($('#ftl').is('.active')) {
+          if (self.fluent.isFTLEditorEnabled() && self.fluent.isComplexFTL()) {
             return;
           }
 
@@ -1924,8 +1928,8 @@ var Pontoon = (function (my) {
         e.preventDefault();
 
         // FTL Editor
-        if ($('#ftl').is('.active')) {
-          Pontoon.fluent.renderEditorWithTranslation({
+        if (self.fluent.isFTLEditorEnabled()) {
+          self.fluent.renderEditor({
             pk: null,
             string: ''
           });
@@ -1979,8 +1983,8 @@ var Pontoon = (function (my) {
         }
 
         // FTL Editor
-        if ($('#ftl').is('.active')) {
-          Pontoon.fluent.renderEditorWithTranslation({
+        if (self.fluent.isFTLEditorEnabled()) {
+          self.fluent.renderEditor({
             pk: $(this).data('id'),
             string: this.string
           });
@@ -2032,13 +2036,12 @@ var Pontoon = (function (my) {
           self.updateTranslation(entity, pf, data.translation);
 
           // FTL Editor
-          if ($('#ftl').is('.active')) {
-            self.fluent.renderEditorWithTranslation(data.translation);
+          if (self.fluent.isFTLEditorEnabled()) {
+            self.fluent.renderEditor(data.translation);
 
           // Standard Editor
           } else {
-            var translationString = self.fluent.getSimplePreview(data.translation, data.translation.string, entity);
-            self.updateAndFocusTranslationEditor(translationString);
+            self.updateAndFocusTranslationEditor(data.translation.string);
             self.updateCachedTranslation();
             self.updateCurrentTranslationLength();
           }
@@ -2097,44 +2100,51 @@ var Pontoon = (function (my) {
       });
 
       $('#helpers .history').on('click', 'menu .unreject', function (e) {
-         var button = $(this),
-             translationId = parseInt($(this).parents('li').data('id'));
+        var button = $(this),
+            translationId = parseInt($(this).parents('li').data('id'));
 
-         $.post('/unreject-translation/', {
-            csrfmiddlewaretoken: $('#server').data('csrf'),
-            translation: translationId,
-            paths: self.getPartPaths(self.currentPart)
-         }).then(function(data) {
-           var entity = self.getEditorEntity();
-           var pf = self.getPluralForm(true);
+        $.post('/unreject-translation/', {
+          csrfmiddlewaretoken: $('#server').data('csrf'),
+          translation: translationId,
+          paths: self.getPartPaths(self.currentPart)
+        }).then(function(data) {
+          var entity = self.getEditorEntity();
+          var pf = self.getPluralForm(true);
 
-           self.stats = data.stats;
+          self.stats = data.stats;
 
-           self.updateTranslation(entity, pf, data.translation);
+          self.updateTranslation(entity, pf, data.translation);
 
-           self.updateAndFocusTranslationEditor(data.translation.string);
-           self.updateCachedTranslation();
-           self.updateCurrentTranslationLength();
+          // FTL Editor
+          if (self.fluent.isFTLEditorEnabled()) {
+            self.fluent.renderEditor(data.translation);
 
-           if (entity.body && pf === 0) {
-             self.postMessage("SAVE", {
-               translation: data.translation.string,
-               id: entity.id
-             });
-           }
+          // Standard Editor
+          } else {
+            self.updateAndFocusTranslationEditor(data.translation.string);
+            self.updateCachedTranslation();
+            self.updateCurrentTranslationLength();
+          }
 
-           button.removeClass('unreject').addClass('reject');
-           button.prop('title', 'Reject');
-           button.parents('li.rejected').removeClass('rejected').addClass('suggested');
-           button.parents('li').find('.info a').prop('title', self.getApproveButtonTitle({
-             rejected: false,
-             unrejected_user: self.user.display_name
-           }));
+          if (entity.body && pf === 0) {
+            self.postMessage("SAVE", {
+              translation: data.translation.string,
+              id: entity.id
+            });
+          }
 
-           self.endLoader('Translation unrejected');
-         }, function() {
-           self.endLoader("Couldn't unreject this translation.");
-         });
+          button.removeClass('unreject').addClass('reject');
+          button.prop('title', 'Reject');
+          button.parents('li.rejected').removeClass('rejected').addClass('suggested');
+          button.parents('li').find('.info a').prop('title', self.getApproveButtonTitle({
+            rejected: false,
+            unrejected_user: self.user.display_name
+          }));
+
+          self.endLoader('Translation unrejected');
+        }, function() {
+          self.endLoader("Couldn't unreject this translation.");
+        });
       });
 
       // Toggle suggestion diff
