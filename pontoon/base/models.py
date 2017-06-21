@@ -1645,6 +1645,7 @@ class EntityQuerySet(models.QuerySet):
         """
         return self.prefetch_related(
             'resource',
+            'resource__project',
             Prefetch(
                 'translation_set',
                 queryset=Translation.objects.filter(locale=locale),
@@ -1731,6 +1732,8 @@ class Entity(DirtyFieldsMixin, models.Model):
                 'string': None,
                 'approved': False,
                 'pk': None,
+                'author': None,
+                'date': None,
             }
 
     @classmethod
@@ -2098,7 +2101,45 @@ class Translation(DirtyFieldsMixin, models.Model):
             'string': self.string,
             'approved': self.approved,
             'fuzzy': self.fuzzy,
+            'author': self.user.email if self.user else None,
+            'date': self.date,
         }
+
+
+class ActiveTranslation(models.Model):
+    locale = models.ForeignKey(Locale)
+    project = models.ForeignKey(Project)
+    resource = models.ForeignKey(Resource)
+    entity = models.ForeignKey(Entity)
+    translation = models.ForeignKey(Translation, blank=True, null=True)
+
+    resource_path = models.TextField()
+    resource_format = models.CharField(max_length=20)
+
+    entity_string = models.TextField()
+    entity_key = models.TextField(blank=True)
+    entity_comment = models.TextField(blank=True)
+    entity_order = models.PositiveIntegerField()
+    entity_source = JSONField(blank=True, default=list)
+
+    translation_string = models.TextField(blank=True, null=True)
+    translation_author = models.TextField(blank=True, null=True)  # Email address
+    translation_date = models.DateTimeField(blank=True, null=True)
+
+    STATUSES = (
+        ('translated', 'translated'),
+        ('suggested', 'suggested'),
+        ('fuzzy', 'fuzzy'),
+        ('missing', 'missing'),
+    )
+
+    status = models.CharField(max_length=10, choices=STATUSES)
+    has_suggestions = models.BooleanField(default=False)
+    unchanged = models.BooleanField(default=False)
+
+    """
+    TODO: Plurals (entity_string_plural, translation_plural_form)
+    """
 
 
 class TranslationMemoryEntryManager(models.Manager):

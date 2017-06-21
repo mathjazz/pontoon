@@ -33,6 +33,7 @@ from django.views.decorators.http import (
 from pontoon.base import forms
 from pontoon.base import utils
 from pontoon.base.models import (
+    ActiveTranslation,
     ChangedEntityLocale,
     Entity,
     Locale,
@@ -190,9 +191,49 @@ def entities(request):
             'stats': TranslatedResource.objects.stats(project, paths, locale),
         }, safe=False)
 
-    entities = Entity.for_project_locale(
-        project, locale, paths, status, search, exclude_entities, extra, time, author
-    )
+    """
+    """
+    """
+    """
+
+    entities = ActiveTranslation.objects.filter(locale=locale)
+
+    if project:
+        entities = entities.filter(project=project)
+
+    if paths:
+        entities = entities.filter(resource_path__in=project.parts_to_paths(paths))
+
+    if status:
+        available_statuses = [x[0] for x in ActiveTranslation.STATUSES]
+        sanitized_statuses = filter(lambda s: s in available_statuses, status.split(','))
+
+        if sanitized_statuses:
+            entities = entities.filter(status__in=sanitized_statuses)
+
+    if extra:
+        available_extras = ('has-suggestions', 'unchanged')
+        for sanitized_extra in filter(lambda s: s in available_extras, extra.split(',')):
+            entities = entities.filter(status__in=sanitized_extras)
+
+    if time:
+        pass
+
+    if author:
+        pass
+
+    if search:
+        entities = entities.filter(
+            Q(translation_string__icontains=search) | Q(entity_string__icontains=search) | Q(entity_comment__icontains=search) | Q(entity_key__icontains=search)
+        )
+
+    if exclude_entities:
+        entities = entities.exclude(pk__in=exclude_entities)
+
+    """
+    """
+    """
+    """
 
     # Only return a list of entity PKs (batch editing: select all)
     if request.POST.get('pkOnly', None):
@@ -240,8 +281,31 @@ def entities(request):
                 if entity_pk in entities.values_list('pk', flat=True):
                     entities_to_map = list(entities_to_map) + list(entities.filter(pk=entity_pk))
 
+    active_translations = []
+    for active_translation in entities_to_map:
+        active_translations.append({
+            'pk': active_translation.entity.pk,
+            'original': active_translation.entity_string,
+            'marked': utils.mark_placeables(active_translation.entity_string),
+            'original_plural': '',
+            'marked_plural': '',
+            'key': active_translation.entity_key,
+            'path': active_translation.resource_path,
+            'format': active_translation.resource_format,
+            'comment': active_translation.entity_comment,
+            'order': active_translation.entity_order,
+            'source': active_translation.entity_source,
+            'translation': [{
+                'pk': active_translation.translation.pk if active_translation.translation else None,
+                'approved': active_translation.status == 'approved',
+                'fuzzy': active_translation.status == 'fuzzy',
+                'string': active_translation.translation_string,
+            }],
+            'visible': True
+        })
+
     return JsonResponse({
-        'entities': Entity.map_entities(locale, entities_to_map, visible_entities),
+        'entities': active_translations,
         'has_next': has_next,
         'stats': TranslatedResource.objects.stats(project, paths, locale),
     }, safe=False)
