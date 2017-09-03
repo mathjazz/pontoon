@@ -1445,12 +1445,12 @@ class Repository(models.Model):
         if url.startswith('ssh://hg@bitbucket.org/'):
             parsed_url = urlparse(url)
             endpoint = (
-                'https://api.bitbucket.org/2.0/repositories/{path}/commit/default'
+                'https://api.bitbucket.org/2.0/repositories/{path}/commits/default'
                 .format(path=parsed_url.path.strip('/'))
             )
             return {
                 'endpoint': endpoint,
-                'get_key': lambda x: x['hash'],
+                'get_key': lambda x: x['values'][0]['hash'] if len(x['values']) else None,
             }
 
         return None
