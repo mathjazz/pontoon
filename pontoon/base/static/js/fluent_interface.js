@@ -110,7 +110,7 @@ var Pontoon = (function (my) {
             }
             input += self.inputValueElement(id, value, maxlength);
 
-            if ($.inArray(id, entityAttributes)) {
+            if ($.inArray(id, [entityAttributes])) {
               label = '<label class="id" for="ftl-id-' + id + '">' +
                 '<span>' + id + '</span>' +
               '</label>';
