@@ -71,7 +71,7 @@ var Pontoon = (function (my) {
 
             if (translationAST) {
               for (var i = 0; i < variants.length; i++) {
-                if (variants[i].key.name === this.toString()) {
+                if (variants[i].key.name === pluralStr) {
                   value = self.serializePlaceables(variants[i].value.elements);
                   break;
                 }
