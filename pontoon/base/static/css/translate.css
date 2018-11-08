@@ -1345,7 +1345,7 @@ body > header aside p {
 #source-pane {
   background: #3F4752;
   border-bottom: 1px solid #5E6475;
-  height: 20%;
+  height: 25%;
   min-height: 100px;
   overflow: auto;
   padding: 10px;
@@ -1415,13 +1415,13 @@ body > header aside p {
   color: #7BC876;
 }
 
-#editor nav ul {
+#sidebar nav ul {
   display: table;
   table-layout: fixed;
   width: 100%;
 }
 
-#editor nav li {
+#sidebar nav li {
   background: #4D5967;
   border-bottom: 1px solid #5E6475;
   border-right: 1px solid #5E6475;
@@ -1429,35 +1429,35 @@ body > header aside p {
   float: none;
 }
 
-#editor nav li:last-child {
+#sidebar nav li:last-child {
   border-right: none;
 }
 
-#editor nav li.active {
+#sidebar nav li.active {
   background: #3F4752;
   border-bottom: none;
 }
 
-#editor nav li:hover {
+#sidebar nav li:hover {
   background: #3F4752;
 }
 
-#editor nav li a {
+#sidebar nav li a {
   color: #CCCCCC;
 }
 
-#editor nav li a > span > .count {
+#sidebar nav li a > span > .count {
   background: #3F4752;
   display: none;
   margin-left: 0;
 }
 
-#editor nav li.active a > span > .count,
-#editor nav li:hover a > span > .count {
+#sidebar nav li.active a > span > .count,
+#sidebar nav li:hover a > span > .count {
   background: #4D5967;
 }
 
-#editor nav li a > span > .count > .preferred {
+#sidebar nav li a > span > .count > .preferred {
   color: #7BC876;
 }
 
@@ -1951,7 +1951,7 @@ body > header aside p {
 
 #helpers {
   background: #3F4752;
-  height: calc(60% - 104px);
+  height: calc(55% - 104px);
   position: relative;
 }
 
@@ -1969,18 +1969,30 @@ body > header aside p {
   top: 43px;
 }
 
+#helpers > section.history {
+  display: block;
+  padding: 0;
+  top: 0;
+}
+
 #helpers > section.machinery .search-wrapper {
-  margin: 0 10px 10px;
+  border: none;
+  margin: 10px;
 }
 
 #helpers > section.machinery .icon {
-  left: 2px;
+  font-size: 17px;
+  left: 10px;
   right: auto;
+  top: 11px;
 }
 
 #helpers > section.machinery input[type=search] {
-  background: transparent;
-  padding: 10px 10px 5px 25px;
+  background: #272A2F;
+  border: 1px solid #4D5967;
+  border-radius: 20px;
+  font-size: 13px;
+  padding: 7px 10px 8px 33px;
 }
 
 #helpers > section ul li {
@@ -2003,6 +2015,8 @@ body > header aside p {
 
 #helpers > section ul li.disabled {
   cursor: default;
+  padding-bottom: 15px;
+  padding-top: 15px;
 }
 
 #helpers > section ul li.preferred {
@@ -2263,8 +2277,13 @@ body > header aside p {
 
 #third-column {
   border-left: 1px solid #5E6475;
-  right: 0;
   height: 100%;
+  line-height: 22px;
   position: absolute;
+  right: 0;
   width: 100%;
+}
+
+#third-column #helpers {
+  height: 100%;
 }

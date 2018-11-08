@@ -440,43 +440,7 @@
       </menu>
 
       <div id="helpers" class="tabs">
-        <nav>
-          <ul>
-            <li class="active">
-              <a href="#history" title="Translation history">
-                <span>History
-                  <span class="count"></span>
-                </span>
-              </a>
-            </li><li>
-              <a href="#machinery" title="Translation memory, machine translation & terminology">
-                <span>Machinery
-                  <span class="count"><span class="preferred"></span><span class="plus"></span><span class="remaining"></span></span>
-                </span>
-              </a>
-            </li><li>
-              <a href="#other-locales" title="Translations to other languages">
-                <span>Locales
-                  <span class="count"><span class="preferred"></span><span class="plus"></span><span class="remaining"></span></span>
-                </span>
-              </a>
-            </li>
-          </ul>
-        </nav>
-
         <section class="history">
-          <ul></ul>
-        </section>
-
-        <section class="machinery">
-          <div class="search-wrapper clearfix">
-            <div class="icon fa fa-search"></div>
-            <input type="search" autocomplete="off" placeholder="Type to search machinery">
-          </div>
-          <ul></ul>
-        </section>
-
-        <section class="other-locales">
           <ul></ul>
         </section>
       </div>
@@ -525,7 +489,40 @@
 
   <!-- The Third column -->
   <div id="third-column" draggable="true">
-    Third column
+    <div id="helpers" class="tabs">
+      <nav>
+        <ul>
+          <li class="active">
+            <a href="#machinery" title="Translation memory, machine translation & terminology">
+              <span>Machinery
+                <span class="count"></span>
+              </span>
+            </a>
+          </li><li>
+            <a href="#other-locales" title="Translations to other languages">
+              <span>Locales
+                <span class="count"><span class="preferred"></span><span class="plus"></span><span class="remaining"></span></span>
+              </span>
+            </a>
+          </li>
+        </ul>
+      </nav>
+
+      <section class="machinery">
+        <div class="search-wrapper clearfix">
+          <div class="icon fa fa-search"></div>
+          <input type="search" autocomplete="off" placeholder="Type to search machinery">
+        </div>
+        <ul></ul>
+      </section>
+
+      <section class="other-locales">
+        <ul></ul>
+      </section>
+    </div>
+  </section>
+
+
   </div>
 
   <!-- Element for dragging sidebar -->

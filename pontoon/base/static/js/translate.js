@@ -384,10 +384,10 @@ var Pontoon = (function (my) {
         this.machinerySource = source;
       }
 
-      var tab = $("#helpers nav .active a"),
+      var tab = $("#third-column #helpers nav .active a"),
           section = tab.attr('href').substr(1);
 
-      $('#helpers section.' + section + ':hidden').show();
+      $('#third-column #helpers section.' + section + ':hidden').show();
     },
 
 
