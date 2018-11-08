@@ -1963,7 +1963,7 @@ body > header aside p {
   bottom: 0;
   left: 0;
   overflow-y: auto;
-  padding-top: 25px;
+  padding-top: 1px;
   position: absolute;
   right: 0;
   top: 43px;
@@ -2295,4 +2295,59 @@ body > header aside p {
 
 #third-column #helpers nav {
   line-height: 23px;
+}
+
+#third-column #helpers nav > ul > li {
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+#third-column #helpers nav > ul > li > a {
+  padding-left: 0;
+  padding-right: 0;
+}
+
+#third-column #helpers > section.comments ul li {
+  cursor: auto;
+  padding: 15px 10px;
+}
+
+#third-column #helpers > section.comments ul li .avatar {
+  float: left;
+  height: 45px;
+}
+
+#third-column #helpers > section.comments ul li .avatar img {
+  border: 2px solid #4D5967;
+  border-radius: 4px;
+}
+
+#third-column #helpers > section.comments ul li:hover .avatar img {
+  border-color: #5E6475;
+}
+
+#third-column #helpers > section.comments ul li header {
+  margin-top: -5px;
+  padding-left: 55px;
+  text-align: left;
+}
+
+#third-column #helpers > section.comments ul li header a {
+  text-transform: none;
+}
+
+#third-column #helpers > section.comments ul li p {
+  padding-left: 55px;
+}
+
+#third-column #helpers > section.comments form textarea {
+  margin: 10px;
+  border-radius: 4px;
+  border: 1px solid #4D5967;
+  background: #272A2F;
+  resize: none;
+  box-sizing: border-box;
+  width: calc(100% - 20px);
+  color: #EBEBEB;
+  padding: 5px;
 }

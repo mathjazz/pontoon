@@ -2128,7 +2128,13 @@ var Pontoon = (function (my) {
 
       // Copy helpers result to translation
       $('#helpers section').on('click', 'li:not(".disabled")', function (e) {
-        var source = $(this).find('.translation-clipboard').text();
+        var result = $(this).find('.translation-clipboard');
+        var source = result.text();
+
+        // Ignore if no result present (e.g. in the Comments section)
+        if (result.length === 0) {
+          return;
+        }
 
         // Ignore clicks on links and buttons
         if ($(e.target).closest('a, menu button').length) {
