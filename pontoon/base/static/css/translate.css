@@ -1144,7 +1144,7 @@ body > header aside p {
   color: #CCCCCC;
   display: none;
   float: right;
-  margin: -17px -18px;
+  margin: -33px -18px;
 }
 
 #entitylist > .wrapper > ul > li:hover .arrow {
@@ -1154,7 +1154,7 @@ body > header aside p {
 /* Make selection area bigger and fit the entire row for easier use */
 #entitylist > .wrapper > ul > li > .status {
   margin: -13px -13px -13px -16px;
-  padding: 13px 13px 13px 16px;
+  padding: 13px 13px 41px 16px;
   font-size: 16px;
 }
 
@@ -1167,8 +1167,7 @@ body > header aside p {
 }
 
 #entitylist > .wrapper > ul > li p {
-  height: 22px;
-  line-height: 22px;
+  line-height: 20px;
 }
 
 #entitylist > .wrapper > ul > li p span {
@@ -1181,8 +1180,8 @@ body > header aside p {
 
 #entitylist > .wrapper > ul > li p span.translation-string {
   color: #AAAAAA;
-  display: none;
-  padding-left: 2%;
+  display: inline-block;
+  height: 20px;
   text-align: start;
 }
 
@@ -1200,10 +1199,8 @@ body > header aside p {
 #entitylist > .wrapper > ul > li.errors p span.source-string,
 #entitylist > .wrapper > ul > li.warnings p span.source-string,
 #entitylist > .wrapper > ul > li.missing.has-translations p span.source-string,
-#entitylist > .wrapper > ul > li.partial p span.source-string,
-#entitylist > .wrapper > ul > li p span.translation-string:not(:empty) {
+#entitylist > .wrapper > ul > li.partial p span.source-string {
   display: inline-block;
-  width: 49%;
 }
 
 #entitylist > .wrapper > ul > li p span.source-string br {
