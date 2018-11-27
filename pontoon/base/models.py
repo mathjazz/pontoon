@@ -3347,3 +3347,45 @@ class TranslatedResource(AggregatedStats):
             strings_with_warnings_diff,
             unreviewed_strings_diff,
         )
+
+
+class CommentQuerySet(models.QuerySet):
+    def serialize(self):
+        return [comment.serialize() for comment in self]
+
+
+class Comment(models.Model):
+    locale = models.ForeignKey(
+        Locale,
+        null=True,
+        blank=True,
+        related_name='comments',
+    )
+    entity = models.ForeignKey(
+        Entity,
+        null=True,
+        blank=True,
+        related_name='comments',
+    )
+    translation = models.ForeignKey(
+        Translation,
+        null=True,
+        blank=True,
+        related_name='comments',
+    )
+
+    author = models.ForeignKey(User, related_name='comments')
+    date = models.DateTimeField(default=timezone.now)
+    content = models.TextField(blank=True)
+
+    objects = CommentQuerySet.as_manager()
+
+    def serialize(self):
+        return {
+            'user': self.author.name_or_email,
+            'username': self.author.username,
+            'gravatar_url': self.author.gravatar_url(44),
+            'date': self.date.strftime('%b %d, %Y %H:%M'),
+            'date_iso': self.date.isoformat() + timezone.now().strftime('%z'),
+            'content': self.content,
+        }

@@ -368,6 +368,62 @@ var Pontoon = (function (my) {
 
 
     /*
+     * Get entity and translation comments
+     */
+    getComments: function (entity) {
+      var self = this,
+          list = $('#helpers .comments ul').empty(),
+          tab = $('#helpers a[href="#comments"]'),
+          count = '';
+
+      self.NProgressUnbind();
+
+      if (self.XHRgetComments) {
+        self.XHRgetComments.abort();
+      }
+
+      self.XHRgetComments = $.ajax({
+        url: '/get-comments/',
+        data: {
+          entity: entity.pk,
+          locale: self.locale.code,
+        },
+        success: function(data) {
+          if (data.length) {
+            $.each(data, function() {
+              list.append('<li class="clearfix">' +
+                '<div class="avatar">' +
+                  '<a href="/contributors/' + this.username + '" target="_blank">' +
+                    '<img src="' + this.gravatar_url + '">' +
+                  '</a>' +
+                '</div>' +
+                '<header>' +
+                  '<a href="/contributors/' + this.username + '" target="_blank">' + this.user + '</a>' +
+                  '<time class="stress" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
+                '</header>' +
+                '<p>' + this.content + '</p>' +
+              '</li>');
+            });
+
+            count = data.length;
+            $("#helpers .comments time").timeago();
+          }
+        },
+        error: function(error) {
+          if (error.status === 0 && error.statusText !== "abort") {
+            self.noConnectionError(list);
+          }
+        },
+        complete: function() {
+          tab.find('.count').html(count).toggle(count !== '');
+        }
+      });
+
+      self.NProgressBind();
+    },
+
+
+    /*
      * Get suggestions for currently translated entity from all helpers
      */
     updateHelpers: function () {
@@ -383,6 +439,8 @@ var Pontoon = (function (my) {
         this.getMachinery(source);
         this.machinerySource = source;
       }
+
+      this.getComments(entity);
 
       var tab = $("#third-column #helpers nav .active a"),
           section = tab.attr('href').substr(1);

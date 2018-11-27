@@ -262,6 +262,13 @@ class UserRoleLogActionAdmin(admin.ModelAdmin):
     performed_by_email.allow_tags = True
 
 
+class CommentAdmin(admin.ModelAdmin):
+    search_fields = ['author__email', 'locale__name', 'locale__code', 'content']
+    # Entity column should come last, for it can be looong
+    list_display = ('pk', 'locale', 'translation', 'author', 'date', 'entity')
+    raw_id_fields = ('entity', 'translation',)
+
+
 admin.site.register(User, UserAdmin)
 admin.site.register(Group, GroupAdmin)
 admin.site.register(models.Locale, LocaleAdmin)
@@ -273,3 +280,4 @@ admin.site.register(models.Translation, TranslationAdmin)
 admin.site.register(models.TranslationMemoryEntry, TranslationMemoryEntryAdmin)
 admin.site.register(models.ChangedEntityLocale, ChangedEntityLocaleAdmin)
 admin.site.register(models.PermissionChangelog, UserRoleLogActionAdmin)
+admin.site.register(models.Comment, CommentAdmin)

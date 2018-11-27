@@ -83,6 +83,9 @@ urlpatterns = [
     url(r'^upload/', views.upload,
         name='pontoon.upload'),
 
+    url(r'^get-comments/', views.get_comments,
+        name='pontoon.get.comments'),
+
     url(
         r'^user-data/',
         views.user_data,
