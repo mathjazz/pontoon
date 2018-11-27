@@ -413,6 +413,33 @@ def get_comments(request):
     return JsonResponse(comments.serialize(), safe=False)
 
 
+@require_POST
+@utils.require_AJAX
+@login_required(redirect_field_name='', login_url='/403')
+@transaction.atomic
+def add_comment(request):
+    """Add comment for the given entity and locale."""
+    try:
+        entity = request.POST['entity']
+        locale = request.POST['locale']
+        content = request.POST['content']
+    except MultiValueDictKeyError as e:
+        return HttpResponseBadRequest('Bad Request: {error}'.format(error=e))
+
+    entity = get_object_or_404(Entity, pk=entity)
+    locale = get_object_or_404(Locale, code=locale)
+
+    comment = Comment(
+        entity=entity,
+        locale=locale,
+        author=request.user,
+        content=content,
+    )
+    comment.save()
+
+    return JsonResponse(comment.serialize(), safe=False)
+
+
 @utils.require_AJAX
 @login_required(redirect_field_name='', login_url='/403')
 @transaction.atomic

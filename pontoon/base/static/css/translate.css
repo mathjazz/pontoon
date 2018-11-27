@@ -2309,6 +2309,11 @@ body > header aside p {
   padding: 15px 10px;
 }
 
+#third-column #helpers > section.comments > ul > li:first-child,
+#third-column #helpers > section.machinery > ul > li:first-child {
+  border-top: 1px solid #5E6475;
+}
+
 #third-column #helpers > section.comments ul li .avatar {
   float: left;
   height: 45px;
@@ -2337,14 +2342,33 @@ body > header aside p {
   padding-left: 55px;
 }
 
-#third-column #helpers > section.comments form textarea {
-  margin: 10px;
+#third-column #helpers > section.comments form {
+  padding: 10px;
+}
+
+#third-column #helpers > section.comments form #comment {
+  background: #272A2F;
   border-radius: 4px;
   border: 1px solid #4D5967;
-  background: #272A2F;
-  resize: none;
   box-sizing: border-box;
-  width: calc(100% - 20px);
-  color: #EBEBEB;
+  color: #FFFFFF;
+  font-size: 13px;
+  font-weight: 300;
+  height: 48px;
   padding: 5px;
+  width: 100%;
+}
+
+#third-column #helpers > section.comments form #add-comment {
+  background: #7BC876;
+  border: none;
+  border-radius: 2px;
+  color: #272A2F;
+  float: right;
+  font-weight: 400;
+  height: auto;
+  margin-top: 5px;
+  padding: 6px;
+  text-transform: uppercase;
+  width: 100px;
 }

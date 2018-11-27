@@ -488,7 +488,7 @@
   </div>
 
   <!-- The Third column -->
-  <div id="third-column" draggable="true">
+  <div id="third-column">
     <div id="helpers" class="tabs">
       <nav>
         <ul>
@@ -527,11 +527,12 @@
       </section>
 
       <section class="comments">
-        <ul></ul>
-
-        <form>
-          <textarea placeholder="Add a comment"></textarea>
+        <form class="clearfix">
+          <textarea id="comment" placeholder="Write a comment..."></textarea>
+          <button id="add-comment" class="button">Send</button>
         </form>
+
+        <ul></ul>
       </section>
     </div>
   </section>

@@ -370,6 +370,27 @@ var Pontoon = (function (my) {
     /*
      * Get entity and translation comments
      */
+    appendComment: function (comment) {
+      var list = $('#helpers .comments ul');
+
+      list.append('<li class="clearfix">' +
+        '<div class="avatar">' +
+          '<a href="/contributors/' + comment.username + '" target="_blank">' +
+            '<img src="' + comment.gravatar_url + '">' +
+          '</a>' +
+        '</div>' +
+        '<header>' +
+          '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
+          '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+        '</header>' +
+        '<p>' + this.doNotRender(comment.content) + '</p>' +
+      '</li>');
+    },
+
+
+    /*
+     * Get entity and translation comments
+     */
     getComments: function (entity) {
       var self = this,
           list = $('#helpers .comments ul').empty(),
@@ -382,6 +403,8 @@ var Pontoon = (function (my) {
         self.XHRgetComments.abort();
       }
 
+      $('#comment').val('');
+
       self.XHRgetComments = $.ajax({
         url: '/get-comments/',
         data: {
@@ -391,26 +414,15 @@ var Pontoon = (function (my) {
         success: function(data) {
           if (data.length) {
             $.each(data, function() {
-              list.append('<li class="clearfix">' +
-                '<div class="avatar">' +
-                  '<a href="/contributors/' + this.username + '" target="_blank">' +
-                    '<img src="' + this.gravatar_url + '">' +
-                  '</a>' +
-                '</div>' +
-                '<header>' +
-                  '<a href="/contributors/' + this.username + '" target="_blank">' + this.user + '</a>' +
-                  '<time class="stress" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
-                '</header>' +
-                '<p>' + this.content + '</p>' +
-              '</li>');
+              self.appendComment(this);
             });
 
             count = data.length;
-            $("#helpers .comments time").timeago();
+            $('#helpers .comments time').timeago();
           }
         },
         error: function(error) {
-          if (error.status === 0 && error.statusText !== "abort") {
+          if (error.status === 0 && error.statusText !== 'abort') {
             self.noConnectionError(list);
           }
         },
@@ -2424,6 +2436,39 @@ var Pontoon = (function (my) {
         $(this).html($(this).data('alternative-text'));
         $(this).data('alternative-text', oldText);
         $(this).parents('li').find('.translation, .translation-diff').toggle();
+      });
+
+      // Add comment
+      $('#add-comment').on('click', function (e) {
+        e.preventDefault();
+        self.NProgressUnbind();
+
+        if (self.XHRaddComment) {
+          self.XHRaddComment.abort();
+        }
+
+        var entity = self.getEditorEntity();
+        self.XHRaddComment = $.ajax({
+          url: '/add-comment/',
+          type: 'POST',
+          data: {
+            csrfmiddlewaretoken: $('#server').data('csrf'),
+            entity: entity.pk,
+            locale: self.locale.code,
+            content: $('#comment').val(),
+          },
+          success: function(data) {
+            self.endLoader('Comment sent.');
+            self.appendComment(data);
+            $('#helpers .comments time').timeago();
+            $('#comment').val('');
+          },
+          error: function(d) {
+            self.endLoader('Oops, something went wrong.', 'error');
+          }
+        });
+
+        self.NProgressBind();
       });
     },
 
