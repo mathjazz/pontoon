@@ -385,15 +385,20 @@ var Pontoon = (function (my) {
     appendComment: function (comment) {
       var list = $('#helpers .comments ul');
 
-      list.append('<li class="clearfix">' +
-        '<div class="avatar">' +
-          '<a href="/contributors/' + comment.username + '" target="_blank">' +
-            '<img src="' + comment.gravatar_url + '">' +
-          '</a>' +
-        '</div>' +
-        '<header>' +
-          '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
-          '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+      list.append('<li class="comment clearfix" data-id="' + comment.pk + '">' +
+        '<header class="clearfix">' +
+          '<div class="avatar">' +
+            '<a href="/contributors/' + comment.username + '" target="_blank">' +
+              '<img src="' + comment.gravatar_url + '">' +
+            '</a>' +
+          '</div>' +
+          '<div class="info">' +
+            '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
+            '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+          '</div>' +
+          '<menu class="toolbar">' +
+            '<button class="delete far" title="Delete comment"></button>' +
+          '</menu>' +
         '</header>' +
         '<p>' + this.doNotRender(comment.content) + '</p>' +
       '</li>');
@@ -2476,6 +2481,35 @@ var Pontoon = (function (my) {
             self.updateCommentsInSidebar();
             $('#helpers .comments time').timeago();
             $('#comment').val('');
+          },
+          error: function(d) {
+            self.endLoader('Oops, something went wrong.', 'error');
+          }
+        });
+
+        self.NProgressBind();
+      });
+
+      // Delete comment
+      $('#helpers .comments ul').on('click', '.comment .toolbar', function (e) {
+        self.NProgressUnbind();
+
+        if (self.XHRdeleteComment) {
+          self.XHRdeleteComment.abort();
+        }
+
+        var comment = $(this).parents('.comment');
+        self.XHRdeleteComment = $.ajax({
+          url: '/delete-comment/',
+          type: 'POST',
+          data: {
+            csrfmiddlewaretoken: $('#server').data('csrf'),
+            comment: comment.data('id'),
+          },
+          success: function(data) {
+            self.endLoader('Comment removed.');
+            comment.remove();
+            self.updateCommentsInSidebar();
           },
           error: function(d) {
             self.endLoader('Oops, something went wrong.', 'error');

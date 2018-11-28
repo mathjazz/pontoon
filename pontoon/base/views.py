@@ -440,6 +440,34 @@ def add_comment(request):
     return JsonResponse(comment.serialize(), safe=False)
 
 
+@require_POST
+@utils.require_AJAX
+@login_required(redirect_field_name='', login_url='/403')
+@transaction.atomic
+def delete_comment(request):
+    try:
+        pk = request.POST['comment']
+    except MultiValueDictKeyError as e:
+        return HttpResponseBadRequest('Bad Request: {error}'.format(error=e))
+
+    comment = get_object_or_404(Comment, pk=pk)
+    project = comment.entity.resource.project
+    locale = comment.locale
+
+    # Only privileged users or authors can delete comments
+    if not (
+        request.user == comment.author or
+        (locale and request.user.can_translate(locale, project))
+    ):
+        return HttpResponseForbidden(
+            "Forbidden: You can't delete this comment."
+        )
+
+    comment.delete()
+
+    return HttpResponse('ok')
+
+
 @utils.require_AJAX
 @login_required(redirect_field_name='', login_url='/403')
 @transaction.atomic

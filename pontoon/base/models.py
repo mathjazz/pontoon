@@ -3409,6 +3409,7 @@ class Comment(models.Model):
 
     def serialize(self):
         return {
+            'pk': self.pk,
             'user': self.author.name_or_email,
             'username': self.author.username,
             'gravatar_url': self.author.gravatar_url(44),

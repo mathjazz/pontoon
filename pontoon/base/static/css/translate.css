@@ -2335,28 +2335,49 @@ body > header aside p {
   border-top: 1px solid #5E6475;
 }
 
-#third-column #helpers > section.comments ul li .avatar {
-  float: left;
-  height: 45px;
+#third-column #helpers > section.comments ul li header {
+  margin-top: -5px;
 }
 
-#third-column #helpers > section.comments ul li .avatar img {
+#third-column #helpers > section.comments ul li header .avatar {
+  float: left;
+  height: 0;
+  margin-top: 4px;
+}
+
+#third-column #helpers > section.comments ul li header .avatar img {
   border: 2px solid #4D5967;
   border-radius: 4px;
 }
 
-#third-column #helpers > section.comments ul li:hover .avatar img {
+#third-column #helpers > section.comments ul li:hover header .avatar img {
   border-color: #5E6475;
 }
 
-#third-column #helpers > section.comments ul li header {
-  margin-top: -5px;
-  padding-left: 55px;
-  text-align: left;
+#third-column #helpers > section.comments ul li header .info {
+  padding-left: 7px;
 }
 
-#third-column #helpers > section.comments ul li header a {
+#third-column #helpers > section.comments ul li header .info a {
   text-transform: none;
+}
+
+#third-column #helpers > section.comments ul li header .toolbar {
+  cursor: pointer;
+}
+
+#third-column #helpers > section.comments ul li header button.delete {
+  color: #AAA;
+  font-size: 16px;
+  opacity: 1;
+}
+
+#third-column #helpers > section.comments ul li header .toolbar:hover button.delete {
+  color: #F36;
+}
+
+#third-column #helpers > section.comments ul li header button.delete:before {
+  content: "";
 }
 
 #third-column #helpers > section.comments ul li p {

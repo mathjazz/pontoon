@@ -86,6 +86,8 @@ urlpatterns = [
         name='pontoon.get.comments'),
     url(r'^add-comment/', views.add_comment,
         name='pontoon.add.comment'),
+    url(r'^delete-comment/', views.delete_comment,
+        name='pontoon.delete.comment'),
 
     url(
         r'^user-data/',
