@@ -2126,6 +2126,27 @@ class EntityQuerySet(models.QuerySet):
             )
         )
 
+    def comments(self, locale):
+        """Return a filter to be used to select entities that have comments.
+
+        This filter will return an entity if it contains source string (entity)
+        comments or translation comments.
+
+        :arg Locale locale: a Locale object to get translations for
+
+        :returns: a django ORM Q object to use as a filter
+
+        """
+        return Q(
+            pk__in=self.get_filtered_entities(
+                locale,
+                Q(entity__comments__isnull=False),
+                lambda x: x.entity.comments.count(),
+                match_all=False,
+                prefetch=Prefetch('entity__comments'),
+            )
+        )
+
     def authored_by(self, locale, emails):
         def is_email(email):
             """
@@ -2452,7 +2473,11 @@ class Entity(DirtyFieldsMixin, models.Model):
 
         if extra:
             # Apply a combination of filters based on the list of extras the user sent.
-            extra_filter_choices = ('rejected', 'unchanged')
+            extra_filter_choices = (
+                'rejected',
+                'unchanged',
+                'comments',
+            )
             post_filters.append(
                 combine_entity_filters(
                     entities,
@@ -2530,6 +2555,7 @@ class Entity(DirtyFieldsMixin, models.Model):
         entities = (
             entities
             .prefetch_active_translations(locale)
+            .prefetch_related('comments')
             .prefetch_related(
                 Prefetch(
                     'resource__project__project_locale',
@@ -2562,6 +2588,7 @@ class Entity(DirtyFieldsMixin, models.Model):
                 'project': entity.resource.project.serialize(),
                 'format': entity.resource.format,
                 'comment': entity.comment,
+                'has_comments': entity.comments.count() > 0,
                 'order': entity.order,
                 'source': entity.source,
                 'obsolete': entity.obsolete,

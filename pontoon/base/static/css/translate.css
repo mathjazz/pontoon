@@ -355,6 +355,15 @@ body > header .locale.select {
   content: "";
 }
 
+.comments .status {
+  left: 15px;
+}
+
+.comments .status:before {
+  color: #AAAAAA;
+  content: "";
+}
+
 .unchanged .status:before {
   color: #AAAAAA;
   content: "";
@@ -1058,10 +1067,12 @@ body > header aside p {
   top: 2px;
 }
 
+#filter .menu li.comments:not(.selected) .status,
 #filter .menu li.unchanged:not(.selected) .status {
   left: 3px;
 }
 
+#filter .menu li.comments:not(.selected) .status:hover,
 #filter .menu li.unreviewed:not(.selected) .status:hover,
 #filter .menu li.unchanged:not(.selected) .status:hover {
   left: 4px;
@@ -1129,7 +1140,7 @@ body > header aside p {
   color: #FFFFFF;
   cursor: pointer;
   line-height: 2em;
-  padding: 10px 25px 10px 43px;
+  padding: 10px 30px 10px 43px;
   position: relative;
 }
 
@@ -1140,15 +1151,25 @@ body > header aside p {
   background-color: #4D5967;
 }
 
-#entitylist > .wrapper > ul > li .arrow {
+#entitylist > .wrapper > ul > li .arrow,
+#entitylist > .wrapper > ul > li .comments {
   color: #CCCCCC;
-  display: none;
   float: right;
-  margin: -33px -18px;
+  margin: -33px -25px;
+  display: none;
 }
 
+#entitylist > .wrapper > ul > li .has.comments,
 #entitylist > .wrapper > ul > li:hover .arrow {
   display: block;
+}
+
+#entitylist > .wrapper > ul > li .has.comments {
+  font-size: 19.8px;
+}
+
+#entitylist > .wrapper > ul > li:hover .comments {
+  display: none;
 }
 
 /* Make selection area bigger and fit the entire row for easier use */
