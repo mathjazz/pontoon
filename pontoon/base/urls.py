@@ -82,8 +82,6 @@ urlpatterns = [
         name='pontoon.download'),
     url(r'^upload/', views.upload,
         name='pontoon.upload'),
-    url(r'^get-comments/', views.get_comments,
-        name='pontoon.get.comments'),
     url(r'^add-comment/', views.add_comment,
         name='pontoon.add.comment'),
     url(r'^delete-comment/', views.delete_comment,

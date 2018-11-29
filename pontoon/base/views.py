@@ -396,23 +396,6 @@ def get_translation_history(request):
     return JsonResponse(payload, safe=False)
 
 
-@utils.require_AJAX
-def get_comments(request):
-    """Get comments for the given entity and locale."""
-    try:
-        entity = request.GET['entity']
-        locale = request.GET['locale']
-    except MultiValueDictKeyError as e:
-        return HttpResponseBadRequest('Bad Request: {error}'.format(error=e))
-
-    entity = get_object_or_404(Entity, pk=entity)
-    locale = get_object_or_404(Locale, code=locale)
-
-    comments = Comment.objects.filter(entity=entity)
-
-    return JsonResponse(comments.serialize(), safe=False)
-
-
 @require_POST
 @utils.require_AJAX
 @login_required(redirect_field_name='', login_url='/403')

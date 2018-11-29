@@ -2588,7 +2588,7 @@ class Entity(DirtyFieldsMixin, models.Model):
                 'project': entity.resource.project.serialize(),
                 'format': entity.resource.format,
                 'comment': entity.comment,
-                'has_comments': entity.comments.count() > 0,
+                'comments': entity.comments.serialize(),
                 'order': entity.order,
                 'source': entity.source,
                 'obsolete': entity.obsolete,
