@@ -605,12 +605,12 @@ body > header aside p {
 }
 
 #sidebar #drag,
-#sidebar.advanced #drag-1 {
+#sidebar.advanced [id^="drag-"] {
   display: block;
   right: 0;
 }
 
-#sidebar.advanced #drag-1 {
+#sidebar.advanced [id^="drag-"] {
   left: -4px;
   z-index: 5;
 }

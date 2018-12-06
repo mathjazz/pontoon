@@ -1756,7 +1756,7 @@ var Pontoon = (function (my) {
                     initial.leftWidth + initial.rightWidth - initial.leftMin);
 
         initial.left.width(left);
-        initial.right.width(right).css('left', left);
+        initial.right.width(right).css('left', left + initial.leftOffset);
       }
 
       function mouseUpHandler() {
@@ -1766,20 +1766,40 @@ var Pontoon = (function (my) {
       }
 
       // Resize entity list and editor by dragging
-      $('#drag-1').bind('mousedown', function (e) {
+      $('[id^="drag-"]').bind('mousedown', function (e) {
         e.preventDefault();
 
-        var left = $('#entitylist'),
-            right = $('#editor'),
-            data = {
-              left: left,
-              right: right,
-              leftWidth: left.outerWidth(),
-              rightWidth: right.outerWidth(),
-              leftMin: 250,
-              rightMin: 350,
-              position: e.pageX
-            };
+        var data = {};
+
+        if (this.id === 'drag-1') {
+          var left = $('#entitylist');
+          var right = $('#editor');
+          data = {
+            left: left,
+            right: right,
+            leftWidth: left.outerWidth(),
+            rightWidth: right.outerWidth(),
+            leftMin: 250,
+            rightMin: 350,
+            position: e.pageX,
+            leftOffset: 0,
+          };
+        }
+
+        else if (this.id === 'drag-2') {
+          var left = $('#editor');
+          var right = $('#third-column');
+          data = {
+            left: left,
+            right: right,
+            leftWidth: left.outerWidth(),
+            rightWidth: right.outerWidth(),
+            leftMin: 350,
+            rightMin: 350,
+            position: e.pageX,
+            leftOffset: $('#entitylist').outerWidth(),
+          };
+        }
 
         left.css('transition-property', 'none');
         right.css('transition-property', 'none');
