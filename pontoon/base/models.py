@@ -2140,7 +2140,13 @@ class EntityQuerySet(models.QuerySet):
         return Q(
             pk__in=self.get_filtered_entities(
                 locale,
-                Q(entity__comments__isnull=False),
+                Q(
+                    Q(entity__comments__isnull=False) &
+                    Q(
+                        Q(entity__comments__locale=F('locale')) |
+                        Q(entity__comments__locale__isnull=True)
+                    )
+                ),
                 lambda x: x.entity.comments.count(),
                 match_all=False,
                 prefetch=Prefetch('entity__comments'),
@@ -2555,7 +2561,13 @@ class Entity(DirtyFieldsMixin, models.Model):
         entities = (
             entities
             .prefetch_active_translations(locale)
-            .prefetch_related('comments')
+            .prefetch_related(
+                Prefetch(
+                    'comments',
+                    queryset=Comment.objects.filter(Q(Q(locale=locale) | Q(locale__isnull=True))),
+                    to_attr='locale_comments',
+                )
+            )
             .prefetch_related(
                 Prefetch(
                     'resource__project__project_locale',
@@ -2588,7 +2600,7 @@ class Entity(DirtyFieldsMixin, models.Model):
                 'project': entity.resource.project.serialize(),
                 'format': entity.resource.format,
                 'comment': entity.comment,
-                'comments': entity.comments.serialize(),
+                'comments': [c.serialize() for c in entity.locale_comments],
                 'order': entity.order,
                 'source': entity.source,
                 'obsolete': entity.obsolete,
@@ -3376,11 +3388,6 @@ class TranslatedResource(AggregatedStats):
         )
 
 
-class CommentQuerySet(models.QuerySet):
-    def serialize(self):
-        return [comment.serialize() for comment in self]
-
-
 class Comment(models.Model):
     entity = models.ForeignKey(Entity, related_name='comments')
 
@@ -3401,8 +3408,6 @@ class Comment(models.Model):
     date = models.DateTimeField(default=timezone.now)
     content = models.TextField(blank=True)
 
-    objects = CommentQuerySet.as_manager()
-
     def serialize(self):
         return {
             'pk': self.pk,
@@ -3412,4 +3417,6 @@ class Comment(models.Model):
             'date': self.date.strftime('%b %d, %Y %H:%M'),
             'date_iso': self.date.isoformat() + timezone.now().strftime('%z'),
             'content': self.content,
+            'locale': self.locale_id,
+            'translation': self.translation_id,
         }
