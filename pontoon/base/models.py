@@ -3382,14 +3382,10 @@ class CommentQuerySet(models.QuerySet):
 
 
 class Comment(models.Model):
+    entity = models.ForeignKey(Entity, related_name='comments')
+
     locale = models.ForeignKey(
         Locale,
-        null=True,
-        blank=True,
-        related_name='comments',
-    )
-    entity = models.ForeignKey(
-        Entity,
         null=True,
         blank=True,
         related_name='comments',
