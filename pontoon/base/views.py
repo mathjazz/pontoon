@@ -404,19 +404,26 @@ def add_comment(request):
     """Add comment for the given entity and locale."""
     try:
         entity = request.POST['entity']
-        locale = request.POST['locale']
+        locale = request.POST.get('locale', None)
+        translation = request.POST.get('translation', None)
         content = request.POST['content']
     except MultiValueDictKeyError as e:
         return HttpResponseBadRequest('Bad Request: {error}'.format(error=e))
 
     entity = get_object_or_404(Entity, pk=entity)
-    locale = get_object_or_404(Locale, code=locale)
+
+    if locale:
+        locale = get_object_or_404(Locale, code=locale)
+
+    if translation:
+        translation = get_object_or_404(Translation, pk=translation)
 
     comment = Comment(
         entity=entity,
         locale=locale,
-        author=request.user,
+        translation=translation,
         content=content,
+        author=request.user,
     )
     comment.save()
 
