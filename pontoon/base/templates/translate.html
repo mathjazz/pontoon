@@ -534,12 +534,22 @@
       </section>
 
       <section class="comments">
-        <form class="clearfix">
-          <h2 class="title"></h2>
-          <textarea id="comment" placeholder="Write a comment..."></textarea>
-          <button id="add-comment" class="button">Send</button>
-        </form>
-
+        {% if user.is_authenticated() %}
+          <form class="clearfix">
+            <h2 class="title"></h2>
+            <textarea id="comment" placeholder="Write a comment..."></textarea>
+            <button id="add-comment" class="button">Send</button>
+          </form>
+        {% else %}
+          <p class="banner">
+            {% if settings.DJANGO_LOGIN %}
+              {% set login_url = url('standalone_login') %}
+            {% else %}
+              {% set login_url = provider_login_url(request) %}
+            {% endif %}
+            <a id="sidebar-signin" href="{{ login_url }}">Sign in</a> to add comments.
+          </p>
+        {% endif %}
         <ul></ul>
       </section>
     </div>
