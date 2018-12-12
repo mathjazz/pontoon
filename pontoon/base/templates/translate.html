@@ -273,12 +273,15 @@
     <section id="single">
       <div class="topbar clearfix">
         <a id="back" href="#back" title="Cancel Translation (Esc)"><span class="fa fa-chevron-left fa-lg"></span>Back to list</a>
+        <button class="comments far fa-comment" title="Team Discussions" data-type="locale"></button>
         <a id="next" href="#next" title="Go To Next String (Alt + Down)"><span class="fa fa-chevron-down fa-lg"></span>Next</a>
         <a id="previous" href="#previous" title="Go To Previous String (Alt + Up)"><span class="fa fa-chevron-up fa-lg"></span>Previous</a>
       </div>
 
       <div id="source-pane">
           <h2></h2>
+
+          <button class="comments far fa-comment" title="Source String Discussions" data-type="entity"></button>
 
           <p id="original"></p>
           <div id="ftl-original" class="ftl-area">
@@ -532,6 +535,7 @@
 
       <section class="comments">
         <form class="clearfix">
+          <h2 class="title"></h2>
           <textarea id="comment" placeholder="Write a comment..."></textarea>
           <button id="add-comment" class="button">Send</button>
         </form>

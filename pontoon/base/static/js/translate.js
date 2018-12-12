@@ -328,6 +328,7 @@ var Pontoon = (function (my) {
                     '<menu class="toolbar">' +
                       ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a>' : '') +
                       '<button class="delete far" title="Delete"></button>' +
+                      '<button class="comments far fa-comment' + (self.getCommentsOfType('translation_id', this.pk).length ? ' has' : '') + '" title="Translation Review Comments" data-type="translation"></button>' +
                       '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="' +
                        (this.approved ? 'Unapprove' : 'Approve')  + '"></button>' +
                       '<button class="' +
@@ -369,12 +370,83 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Update comment icon in the sidebar
+     * Return entity comments of provided type
      */
-    updateCommentsInSidebar: function () {
+    getCommentsOfType: function (type, translation_id) {
       var entity = this.getEditorEntity();
 
-      entity.ui.find('.comments').toggleClass('has', entity.comments.length > 0);
+      return entity.comments.filter(function(item) {
+        switch (type) {
+          case 'entity':
+            return item.translation === null && item.locale === null;
+
+          case 'locale':
+            return item.translation === null && item.locale !== null;
+
+          case 'translation':
+            return item.translation !== null && item.locale !== null;
+
+          case 'translation_id':
+            return item.translation === translation_id;
+        }
+      });
+    },
+
+
+    /*
+     * Get button element of the currently open comment section
+     */
+    getActiveCommentsButton: function () {
+      var type = $('#helpers > section.comments').data('type');
+      var translation_id = $('#helpers > section.comments').data('translation_id');
+      var $button = $('#single button.comments[data-type="' + type + '"]');
+
+      if (type === 'translation') {
+        $button = $('#helpers .history [data-id="' + translation_id + '"] button.comments');
+      }
+
+      return $button;
+    },
+
+
+    /*
+     * Reset comment icon active status
+     */
+    resetActiveCommentIcons: function (isCommentsTabActive) {
+      $('#single button.comments').removeClass('active');
+
+      if (isCommentsTabActive) {
+        var $button = this.getActiveCommentsButton();
+        $button.addClass('active');
+      }
+    },
+
+
+    /*
+     * Update comment icons in the UI to designate existing comments
+     */
+    markIconsWithComments: function () {
+      var self = this;
+      var entity = self.getEditorEntity();
+      var comments = entity.comments;
+
+      // Sidebar
+      entity.ui.find('.comments').toggleClass('has', comments.length > 0);
+
+      // Locale
+      comments = self.getCommentsOfType('locale');
+      $('#single .topbar button.comments').toggleClass('has', comments.length > 0);
+
+      // Entity
+      comments = self.getCommentsOfType('entity');
+      $('#single #source-pane button.comments').toggleClass('has', comments.length > 0);
+
+      // Translation
+      $('#helpers > section ul li > header button.comments').each(function() {
+        var translation_id = $(this).parents('.suggestion[data-id]').data('id');
+        var translation_comments = self.getCommentsOfType('translation_id', translation_id);
+        $(this).toggleClass('has', translation_comments.length > 0);
+      });
     },
 
 
@@ -382,7 +454,7 @@ var Pontoon = (function (my) {
      * Get entity and translation comments
      */
     appendComment: function (comment) {
-      var list = $('#helpers .comments ul');
+      var list = $('#helpers > section.comments ul');
 
       list.append('<li class="comment clearfix" data-id="' + comment.pk + '">' +
         '<header class="clearfix">' +
@@ -405,23 +477,54 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Get entity and translation comments
+     * Render comments for the given button
      */
-    getComments: function (entity) {
+    renderCommentsForButton: function ($button) {
       var self = this;
-      var list = $('#helpers .comments ul').empty();
-      var tab = $('#helpers a[href="#comments"]');
-      var count = '';
+      var type = $button.data('type');
+      var entity = self.getEditorEntity();
+      var comments = [];
 
-      $('#comment').val('');
+      // Gather relevant data attributes and comments
+      var data = {
+        entity: entity.pk,
+      };
 
-      $.each(entity.comments, function() {
+      var translation_id = null;
+      if (type === 'translation') {
+        translation_id = $button.parents('.suggestion[data-id]').data('id');
+        data.translation = translation_id;
+        comments = self.getCommentsOfType('translation_id', translation_id);
+      }
+      else {
+        comments = self.getCommentsOfType(type);
+      }
+      if (type === 'translation' || type === 'locale') {
+        data.locale = self.locale.code;
+      }
+
+      // Render comments
+      $('#helpers > section.comments ul').empty();
+      $('#comment').removeData().data(data).val('');
+
+      $.each(comments, function() {
         self.appendComment(this);
       });
 
-      count = entity.comments.length;
-      $('#helpers .comments time').timeago();
-      tab.find('.count').html(count).toggle(count !== '');
+      var title = $button.attr('title');
+      $('#helpers > section.comments')
+        .data('type', type)
+        .data('translation_id', translation_id)
+        .find('.title')
+          .html(title)
+        .end()
+        .find('time')
+          .timeago();
+
+      // Update comments count in the tab
+      var tab = $('#helpers a[href="#comments"]');
+      var count = comments.length;
+      tab.find('.count').html(count).toggle(count !== 0);
     },
 
 
@@ -442,7 +545,9 @@ var Pontoon = (function (my) {
         this.machinerySource = source;
       }
 
-      this.getComments(entity);
+      // Update Comments tab contents as if the first comments icon was clicked
+      var $button = $('#single button.comments:first');
+      this.renderCommentsForButton($button);
 
       var tab = $("#third-column #helpers nav .active a"),
           section = tab.attr('href').substr(1);
@@ -812,6 +917,9 @@ var Pontoon = (function (my) {
       self.updateCachedTranslation();
       self.toggleFailedChecks(translation);
       self.updateHelpers();
+      var section = $('#helpers.tabs nav li.active a').attr('href').substr(1);
+      self.resetActiveCommentIcons(section === 'comments');
+      self.markIconsWithComments();
       self.pushState();
     },
 
@@ -2449,6 +2557,36 @@ var Pontoon = (function (my) {
         $(this).parents('li').find('.translation, .translation-diff').toggle();
       });
 
+      // Reset active comment icons
+      $('#helpers.tabs nav a').click(function (e) {
+        var section = $(this).attr('href').substr(1);
+        var $button = $('#single button.comments.active');
+
+        self.resetActiveCommentIcons(section === 'comments');
+
+        if (section === 'comments') {
+          // If clicked on Comments tab, immitate click on active/first comment icon
+          if (e.hasOwnProperty('originalEvent')) {
+            if (!$button.length) {
+              $button = self.getActiveCommentsButton();
+              if (!$button.length) {
+                $button = $('#single button.comments:first');
+              }
+            }
+            return $button.click();
+          }
+        }
+      });
+
+      // Open comments
+      $('#single').on('click', 'button.comments', function (e) {
+        var $button = $(this);
+        self.renderCommentsForButton($button);
+
+        // Focus comments tab
+        var tab = $('#helpers a[href="#comments"]').click();
+      });
+
       // Add comment
       $('#add-comment').on('click', function (e) {
         e.preventDefault();
@@ -2459,20 +2597,20 @@ var Pontoon = (function (my) {
         }
 
         var entity = self.getEditorEntity();
+        var data = $('#comment').data();
+        data.csrfmiddlewaretoken = $('#server').data('csrf');
+        data.content = $('#comment').val();
+
         self.XHRaddComment = $.ajax({
           url: '/add-comment/',
           type: 'POST',
-          data: {
-            csrfmiddlewaretoken: $('#server').data('csrf'),
-            entity: entity.pk,
-            content: $('#comment').val(),
-          },
+          data: data,
           success: function(data) {
             entity.comments.push(data);
             self.endLoader('Comment sent.');
             self.appendComment(data);
-            self.updateCommentsInSidebar();
-            $('#helpers .comments time').timeago();
+            self.markIconsWithComments();
+            $('#helpers > section.comments time').timeago();
             $('#comment').val('');
           },
           error: function(d) {
@@ -2484,7 +2622,7 @@ var Pontoon = (function (my) {
       });
 
       // Delete comment
-      $('#helpers .comments ul').on('click', '.comment .toolbar', function (e) {
+      $('#helpers > section.comments ul').on('click', '.comment .toolbar', function (e) {
         self.NProgressUnbind();
 
         if (self.XHRdeleteComment) {
@@ -2507,7 +2645,7 @@ var Pontoon = (function (my) {
             });
             self.endLoader('Comment removed.');
             comment.remove();
-            self.updateCommentsInSidebar();
+            self.markIconsWithComments();
           },
           error: function(d) {
             self.endLoader('Oops, something went wrong.', 'error');

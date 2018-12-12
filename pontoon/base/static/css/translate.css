@@ -2159,7 +2159,18 @@ body > header aside p {
   color: #F36;
 }
 
+#helpers > section ul li > header button.comments {
+  margin-right: 5px;
+}
 
+#helpers > section ul li > header button.comments.has {
+  color: #7BC876;
+}
+
+#helpers > section ul li > header button.comments.active,
+#helpers > section ul li > header button.comments:hover {
+  font-weight: 700;
+}
 
 
 
@@ -2413,4 +2424,37 @@ body > header aside p {
   padding: 6px;
   text-transform: uppercase;
   width: 100px;
+}
+
+#third-column #helpers > section.comments .title {
+  color: #ccc;
+  padding-bottom: 7px;
+  text-align: center;
+}
+
+button.comments {
+  background: transparent;
+  border: none;
+  color: #AAAAAA;
+  cursor: pointer;
+  font-size: 19.8px;
+  padding: 0;
+}
+
+button.comments.has {
+  color: #7BC876;
+}
+
+button.comments.active,
+button.comments:hover {
+  font-weight: 700;
+}
+
+#source-pane button.comments {
+  float: right;
+}
+
+#sidebar .topbar button.comments {
+  float: right;
+  margin-left: 30px;
 }
