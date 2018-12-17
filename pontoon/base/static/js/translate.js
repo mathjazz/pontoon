@@ -345,6 +345,33 @@ var Pontoon = (function (my) {
                   '<p class="translation-clipboard">' +
                     self.doNotRender(this.string) +
                   '</p>' +
+                  '<ul>' +
+                    '<li class="' + (this.pk === 5681825 ? ' hidden ' : '') + 'add-comment added clearfix">' +
+                      '<div class="avatar">' +
+                        '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
+                          '<img src="//www.gravatar.com/avatar/b84878e5f05114988a715bb9f3742e2f?s=44" width="44" height="44">' +
+                        '</a>' +
+                      '</div>' +
+                      '<header class="wrapper clearfix">' +
+                        '<p class="aha">Jobava &middot; <span class="green">4 months ago</span></p>' +
+                        '<p class="comment">Sposojenk se izogibamo, če obstaja uveljavljen domač izraz</p>' +
+                      '</header>' +
+                    '</li>' +
+                    '<li class="add-comment clearfix">' +
+                      '<div class="avatar">' +
+                        '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
+                          '<img src="//www.gravatar.com/avatar/b7aed7b21e849ab3d67ffd811313a75b?s=44" width="44" height="44">' +
+                        '</a>' +
+                      '</div>' +
+                      '<header class="wrapper clearfix">' +
+                        '<textarea id="comment-N" placeholder="Write a comment..."></textarea>' +
+                        '<div class="toolbar">' +
+                          '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="Approve"></button>' +
+                          '<button class="' + (this.rejected ? 'unreject' : 'reject') + ' fa" title="Reject"></button>' +
+                          '</div>' +
+                      '</header>' +
+                    '</li>' +
+                  '</ul>' +
                 '</li>');
             });
 
@@ -460,48 +487,56 @@ var Pontoon = (function (my) {
         '<header class="clearfix">' +
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
-              '<img src="' + comment.gravatar_url + '">' +
+              '<img width="44" height="44" src="' + comment.gravatar_url + '">' +
             '</a>' +
           '</div>' +
           '<div class="info">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
-            '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+            ((comment.user !== 'Developer Comment') ? ('<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>') : '') +
           '</div>' +
           '<menu class="toolbar">' +
-            '<button class="delete far" title="Delete comment"></button>' +
+            (comment.user !== 'Developer Comment' ? '<button class="delete far" title="Delete comment"></button>' : '') +
           '</menu>' +
         '</header>' +
         '<p>' + this.doNotRender(comment.content) + '</p>' +
       '</li>');
     },
 
-
     /*
-     * Render comments for the given button
+     * Get comments for the given entity
      */
-    renderCommentsForButton: function ($button) {
+    getComments: function (entity) {
       var self = this;
-      var type = $button.data('type');
-      var entity = self.getEditorEntity();
+      var type = 'locale';
       var comments = [];
+
+      if (entity.comment) {
+        // Translation length limit
+        var split = entity.comment.split('\n'),
+            splitComment = entity.comment;
+        if (split[0].startsWith('MAX_LENGTH')) {
+          try {
+            self.translationLengthLimit = parseInt(split[0].split('MAX_LENGTH: ')[1].split(' ')[0], 10);
+            splitComment = split.length > 1 ? entity.comment.substring(entity.comment.indexOf('\n') + 1) : '';
+          } catch (e) {
+            // Catch unexpected comment structure
+          }
+        }
+
+        comments.push({
+          user: 'Developer Comment',
+          gravatar_url: '',
+          content: splitComment,
+        });
+      }
 
       // Gather relevant data attributes and comments
       var data = {
         entity: entity.pk,
       };
 
-      var translation_id = null;
-      if (type === 'translation') {
-        translation_id = $button.parents('.suggestion[data-id]').data('id');
-        data.translation = translation_id;
-        comments = self.getCommentsOfType('translation_id', translation_id);
-      }
-      else {
-        comments = self.getCommentsOfType(type);
-      }
-      if (type === 'translation' || type === 'locale') {
-        data.locale = self.locale.code;
-      }
+      comments.push.apply(comments, self.getCommentsOfType(type));
+      data.locale = self.locale.code;
 
       // Render comments
       $('#helpers > section.comments ul').empty();
@@ -511,15 +546,9 @@ var Pontoon = (function (my) {
         self.appendComment(this);
       });
 
-      var title = $button.attr('title');
       $('#helpers > section.comments')
         .data('type', type)
-        .data('translation_id', translation_id)
-        .find('.title')
-          .html(title)
-        .end()
-        .find('time')
-          .timeago();
+        .find('time').timeago();
 
       // Update comments count in the tab
       var tab = $('#helpers a[href="#comments"]');
@@ -545,9 +574,8 @@ var Pontoon = (function (my) {
         this.machinerySource = source;
       }
 
-      // Update Comments tab contents as if the first comments icon was clicked
-      var $button = $('#single button.comments:first');
-      this.renderCommentsForButton($button);
+      // Update Comments tab contents
+      this.getComments(entity);
 
       var tab = $("#third-column #helpers nav .active a"),
           section = tab.attr('href').substr(1);
@@ -753,21 +781,6 @@ var Pontoon = (function (my) {
       self.translationLengthLimit = false;
 
       if (entity.comment) {
-        // Translation length limit
-        var split = entity.comment.split('\n'),
-            splitComment = entity.comment;
-        if (split[0].startsWith('MAX_LENGTH')) {
-          try {
-            self.translationLengthLimit = parseInt(split[0].split('MAX_LENGTH: ')[1].split(' ')[0], 10);
-            splitComment = split.length > 1 ? entity.comment.substring(entity.comment.indexOf('\n') + 1) : '';
-          } catch (e) {
-            // Catch unexpected comment structure
-          }
-        }
-
-        var comment = this.linkify(splitComment);
-        self.appendMetaData('Comment', comment);
-
         // Screenshot
         $('#metadata').find('a').each(function() {
           var url = $(this).html();
@@ -834,12 +847,13 @@ var Pontoon = (function (my) {
           }
         }
 
+        // Metadata: project
+        var projectLink = '/' + self.locale.code + '/' +  entity.project.slug + '/';
         self.appendMetaData('Resource', entity.path, link, linkClass);
+        $('#metadata .resource .content').prepend(
+          '<a href="' + projectLink + '">' + entity.project.name + '</a> &middot; '
+        );
       }
-
-      // Metadata: project
-      var projectLink = '/' + self.locale.code + '/' +  entity.project.slug + '/';
-      self.appendMetaData('Project', entity.project.name, projectLink);
 
       // Original string and plurals
       $('#original').html(entity.marked);
@@ -2557,34 +2571,13 @@ var Pontoon = (function (my) {
         $(this).parents('li').find('.translation, .translation-diff').toggle();
       });
 
-      // Reset active comment icons
-      $('#helpers.tabs nav a').click(function (e) {
-        var section = $(this).attr('href').substr(1);
-        var $button = $('#single button.comments.active');
-
-        self.resetActiveCommentIcons(section === 'comments');
-
-        if (section === 'comments') {
-          // If clicked on Comments tab, immitate click on active/first comment icon
-          if (e.hasOwnProperty('originalEvent')) {
-            if (!$button.length) {
-              $button = self.getActiveCommentsButton();
-              if (!$button.length) {
-                $button = $('#single button.comments:first');
-              }
-            }
-            return $button.click();
-          }
-        }
-      });
-
-      // Open comments
+      // Open translation comments
       $('#single').on('click', 'button.comments', function (e) {
         var $button = $(this);
-        self.renderCommentsForButton($button);
 
-        // Focus comments tab
-        var tab = $('#helpers a[href="#comments"]').click();
+        if ($(this).parents('.suggestion[data-id]').length) {
+          $(this).parents('.suggestion[data-id]').find('.add-comment').show();
+        }
       });
 
       // Add comment

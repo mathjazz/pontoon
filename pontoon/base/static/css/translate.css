@@ -1363,8 +1363,7 @@ body > header aside p {
 #source-pane {
   background: #3F4752;
   border-bottom: 1px solid #5E6475;
-  height: 25%;
-  min-height: 100px;
+  height: 110px;
   overflow: auto;
   padding: 10px;
 
@@ -1502,8 +1501,7 @@ body > header aside p {
 }
 
 #editor #translation {
-  height: 15%;
-  min-height: 100px;
+  height: 85px;
 }
 
 #ftl-area {
@@ -1512,7 +1510,7 @@ body > header aside p {
 }
 
 #ftl-area #only-value {
-  height: 100%;
+  height: 85px;
   left: 0;
   position: absolute;
   top: 0;
@@ -1521,9 +1519,8 @@ body > header aside p {
 .ftl-area {
   background: #272A2F;
   display: none;
-  height: 15%;
+  height: 85px;
   line-height: 22px;
-  min-height: 100px;
   padding: 10px;
   text-align: left;
   width: 100%;
@@ -1969,7 +1966,7 @@ body > header aside p {
 
 #helpers {
   background: #3F4752;
-  height: calc(60% - 104px);
+  height: calc(100% - 300px);
   position: relative;
 }
 
@@ -2467,4 +2464,64 @@ button.comments:hover {
 #sidebar .topbar button.comments {
   float: right;
   margin-left: 30px;
+}
+
+
+
+/* Inline Comments */
+#helpers > section.history ul li.add-comment {
+  display: none;
+  padding: 5px 0 5px 10px;
+  border: none;
+  border-left: 2px solid #272A2F;
+  margin-left: 30px;
+}
+
+#helpers > section.history ul li.add-comment.added {
+  border-color: #7BC876;
+}
+
+#helpers > section.history ul li.add-comment .avatar {
+  float: left;
+  margin-right: 10px;
+}
+
+#helpers > section.history ul li.add-comment .avatar img {
+  border-radius: 4px;
+}
+
+#helpers > section.history ul li.add-comment .wrapper {
+  float: left;
+  width: calc(100% - 54px);
+  position: relative;
+}
+
+#helpers > section.history ul li.add-comment .wrapper #comment-N {
+  background: #272A2F;
+  border: 1px solid #4D5967;
+  border-radius: 4px;
+  color: #FFF;
+  height: 45px;
+  resize: none;
+}
+
+#helpers > section.history ul li.add-comment .wrapper .toolbar {
+  position: absolute;
+  right: 10px;
+  top: 12px;
+}
+
+#helpers > section.history ul li.add-comment p.aha span.green {
+  color: #7BC876;
+}
+
+#helpers > section.history ul li.add-comment p.comment {
+  text-transform: none;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+#helpers > section.history ul p.translation {
+  padding-bottom: 10px;
 }
