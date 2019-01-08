@@ -1462,6 +1462,10 @@ body > header aside p {
   border-bottom: none;
 }
 
+#sidebar nav li {
+  width: 25%;
+}
+
 #sidebar nav li:hover {
   background: #3F4752;
 }
@@ -1474,11 +1478,32 @@ body > header aside p {
   background: #3F4752;
   display: none;
   margin-left: 0;
+  padding: 0 3px;
 }
 
 #sidebar nav li.active a > span > .count,
 #sidebar nav li:hover a > span > .count {
   background: #4D5967;
+}
+
+#sidebar nav li a > span > .title {
+  display: inline-block;
+}
+
+#sidebar nav li a > span > .icon {
+  display: none;
+  font-size: 17px;
+  vertical-align: text-top;
+}
+
+@media only screen and (max-width: 1279px) {
+  #sidebar nav li a > span > .title {
+    display: none;
+  }
+
+  #sidebar nav li a > span > .icon {
+    display: inline-block;
+  }
 }
 
 #sidebar nav li a > span > .count > .preferred {
