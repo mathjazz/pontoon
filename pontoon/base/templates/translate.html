@@ -280,8 +280,6 @@
       <div id="source-pane">
           <h2></h2>
 
-          <button class="comments far fa-comment" title="Team Discussions" data-type="entity"></button>
-
           <p id="original"></p>
           <div id="ftl-original" class="ftl-area">
             <section class="main-value">
@@ -533,6 +531,7 @@
       </section>
 
       <section class="comments">
+        <ul></ul>
         {% if user.is_authenticated() %}
           <form class="clearfix">
             <textarea id="comment" placeholder="Write a comment..."></textarea>
@@ -548,7 +547,6 @@
             <a id="sidebar-signin" href="{{ login_url }}">Sign in</a> to add comments.
           </p>
         {% endif %}
-        <ul></ul>
       </section>
     </div>
   </section>

@@ -605,7 +605,7 @@ tfoot td a {
 }
 
 img.rounded {
-  border-radius: 100%;
+  border-radius: 6px;
   border: 2px solid #4D5967;
 }
 
@@ -915,6 +915,7 @@ header .right .select .menu {
 #profile .button img,
 #profile .button .menu-icon {
   margin: 6px 0 6px 5px;
+  border-radius: 6px;
 }
 
 #profile .button img {
@@ -924,7 +925,7 @@ header .right .select .menu {
 
 #profile .button .menu-icon {
   border: 2px solid #4D5967;
-  border-radius: 100%;
+  border-radius: 6px;
   float: right;
   font-size: 20px;
   height: 20px;

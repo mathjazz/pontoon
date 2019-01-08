@@ -1162,7 +1162,7 @@ body > header aside p {
 #entitylist > .wrapper > ul > li .comments {
   color: #CCCCCC;
   float: right;
-  margin: -33px -25px;
+  margin: -33px -15px;
   display: none;
 }
 
@@ -2329,7 +2329,6 @@ body > header aside p {
   padding: 15px 10px;
 }
 
-#third-column #helpers > section.comments > ul > li:first-child,
 #third-column #helpers > section.machinery > ul > li:first-child {
   border-top: 1px solid #5E6475;
 }
@@ -2342,11 +2341,20 @@ body > header aside p {
   float: left;
   height: 0;
   margin-top: 4px;
+  position: relative;
 }
 
 #third-column #helpers > section.comments ul li header .avatar img {
   border: 2px solid #4D5967;
   border-radius: 4px;
+}
+
+#third-column #helpers > section.comments ul li header .avatar a .icon {
+  position: absolute;
+  bottom: -10px;
+  left: -1px;
+  font-size: 14px;
+  color: #FFA10F;
 }
 
 #third-column #helpers > section.comments ul li:hover header .avatar img {
@@ -2367,6 +2375,7 @@ body > header aside p {
 
 #third-column #helpers > section.comments ul li header button.delete {
   color: #AAA;
+  display: block;
   font-size: 16px;
   opacity: 1;
 }
@@ -2405,7 +2414,7 @@ body > header aside p {
   color: #FFFFFF;
   font-size: 13px;
   font-weight: 300;
-  height: 48px;
+  height: 84px;
   padding: 5px;
   width: 100%;
 }

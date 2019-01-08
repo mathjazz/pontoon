@@ -487,15 +487,16 @@ var Pontoon = (function (my) {
         '<header class="clearfix">' +
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
+              (comment.pk === 6 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
               '<img width="44" height="44" src="' + comment.gravatar_url + '">' +
             '</a>' +
           '</div>' +
           '<div class="info">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
-            ((comment.user !== 'Developer Comment') ? ('<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>') : '') +
+            '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
           '</div>' +
           '<menu class="toolbar">' +
-            (comment.user !== 'Developer Comment' ? '<button class="delete far" title="Delete comment"></button>' : '') +
+            '<button class="delete far" title="Delete comment"></button>' +
           '</menu>' +
         '</header>' +
         '<p>' + this.doNotRender(comment.content) + '</p>' +
@@ -509,26 +510,6 @@ var Pontoon = (function (my) {
       var self = this;
       var type = 'locale';
       var comments = [];
-
-      if (entity.comment) {
-        // Translation length limit
-        var split = entity.comment.split('\n'),
-            splitComment = entity.comment;
-        if (split[0].startsWith('MAX_LENGTH')) {
-          try {
-            self.translationLengthLimit = parseInt(split[0].split('MAX_LENGTH: ')[1].split(' ')[0], 10);
-            splitComment = split.length > 1 ? entity.comment.substring(entity.comment.indexOf('\n') + 1) : '';
-          } catch (e) {
-            // Catch unexpected comment structure
-          }
-        }
-
-        comments.push({
-          user: 'Developer Comment',
-          gravatar_url: '',
-          content: splitComment,
-        });
-      }
 
       // Gather relevant data attributes and comments
       var data = {
@@ -781,6 +762,21 @@ var Pontoon = (function (my) {
       self.translationLengthLimit = false;
 
       if (entity.comment) {
+        // Translation length limit
+        var split = entity.comment.split('\n'),
+            splitComment = entity.comment;
+        if (split[0].startsWith('MAX_LENGTH')) {
+          try {
+            self.translationLengthLimit = parseInt(split[0].split('MAX_LENGTH: ')[1].split(' ')[0], 10);
+            splitComment = split.length > 1 ? entity.comment.substring(entity.comment.indexOf('\n') + 1) : '';
+          } catch (e) {
+            // Catch unexpected comment structure
+          }
+        }
+
+        var comment = this.linkify(splitComment);
+        self.appendMetaData('Developer Comment', comment);
+
         // Screenshot
         $('#metadata').find('a').each(function() {
           var url = $(this).html();
@@ -792,6 +788,19 @@ var Pontoon = (function (my) {
         });
       }
 
+      // TODO: This is hardcoded, replace with actual code
+      self.appendMetaData('Pinned comment', 'This is a pinned PM comment.');
+
+      $('#metadata').append(
+        '<p>' +
+          '<span class="title"></span> ' +
+          '<span class="content">' +
+            '<a href="#">Request context</a>' +
+              ' &middot; ' +
+            '<a href="#">Report issue</a>' +
+          '</span>' +
+        '</p>');
+
       // Metadata: attribute
       var attribute = self.fluent.getSimpleSingleAttribute(entity);
       if (attribute) {
@@ -800,7 +809,7 @@ var Pontoon = (function (my) {
 
       // Metadata: key
       if (entity.key) {
-        self.appendMetaData('Context', entity.key);
+        self.appendMetaData('Key', entity.key);
       }
 
       // Metadata: source
