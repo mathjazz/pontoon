@@ -1342,6 +1342,7 @@ body > header aside p {
 }
 
 #sidebar .topbar a#back,
+#sidebar .topbar a#toggle,
 #sidebar .topbar a.quit-batch-editing,
 #entitylist .topbar a.select-all {
   float: left;
@@ -1363,8 +1364,14 @@ body > header aside p {
   padding-right: 5px;
 }
 
+#sidebar .topbar a#toggle .fa-chevron-right,
 #sidebar .topbar a.edit-all .fa {
   padding: 0 0 0 5px;
+}
+
+#sidebar .topbar a#toggle.hide .fa-chevron-right,
+#sidebar .topbar a#toggle:not(.hide) .fa-chevron-left {
+  display: none;
 }
 
 #source-pane {

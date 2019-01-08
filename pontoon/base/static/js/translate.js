@@ -2043,6 +2043,27 @@ var Pontoon = (function (my) {
           });
           break;
 
+        case 'toggle':
+          var hide = $(this).hasClass('hide');
+          var editor = $('#editor').outerWidth();
+
+          $(this).toggleClass('hide');
+          $('#entitylist').toggle();
+
+          if (hide) {
+            var thirdColumn = $('#third-column').outerWidth();
+            $('#editor')
+              .css('left', 0)
+              .css('width', editor + thirdColumn - 1);
+          }
+          else {
+            var entityList = $('#entitylist').outerWidth();
+            $('#editor')
+              .css('left', '25%')
+              .css('width', editor - entityList);
+          }
+          break;
+
         case 'previous':
           self.navigateToEntity('previous');
           break;
