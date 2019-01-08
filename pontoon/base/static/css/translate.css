@@ -295,8 +295,8 @@ body > header .locale.select {
 }
 
 .status.fa {
-  left: 16px;
-  top: 13px;
+  left: 18px;
+  top: 12px;
 }
 
 .status:before {
@@ -370,14 +370,14 @@ body > header .locale.select {
 }
 
 .all .status {
-  top: 11px;
-  left: 14px;
+  top: 12px;
+  left: 17px;
 }
 
 .all .status:before {
   color: #AAAAAA;
   content: "";
-  font-size: 19px;
+  font-size: 16px;
 }
 
 .unreviewed .status:before {
@@ -647,25 +647,32 @@ body > header aside p {
   width: 50%;
 }
 
+#sidebar .search-wrapper {
+  border: none;
+  margin: 10px 5px;
+  position: static;
+}
+
 #entitylist .search-wrapper {
-  margin-bottom: 0;
   position: static;
 }
 
 #sidebar .search-wrapper .icon {
-  font-size: 19px;
+  font-size: 17px;
   left: auto;
-  right: 10px;
-  top: 12px;
+  right: 17px;
+  top: 21px;
 }
 
 #sidebar .search-wrapper input[type=search] {
-  background: #4D5967;
+  background: #272A2F;
+  border: 1px solid #4D5967;
+  border-radius: 20px;
   color: #FFFFFF;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 300;
   line-height: 23px;
-  padding: 10px 35px 10px 43px;
+  padding: 7px 33px 8px 37px;
   width: 100%;
 
   -moz-box-sizing: border-box;
@@ -679,7 +686,7 @@ body > header aside p {
   color: #AAAAAA;
 }
 
-#sidebar .search-wrapper input[type=search]:-webkit-input-placeholder {
+#sidebar .search-wrapper input[type=search]::-webkit-input-placeholder {
   color: #AAAAAA;
 }
 
@@ -705,11 +712,11 @@ body > header aside p {
 }
 
 #filter .menu {
-  left: 0;
+  left: 2px;
   max-height: calc(100% - 44px);
   overflow-y: auto;
   padding: 0;
-  top: 44px;
+  top: 52px;
   width: 350px;
 
   -moz-box-sizing: border-box;
@@ -1124,7 +1131,7 @@ body > header aside p {
   bottom: 0;
   overflow-y: auto;
   position: absolute;
-  top: 44px;
+  top: 55px;
   width: 100%;
 }
 
@@ -1990,24 +1997,8 @@ body > header aside p {
   top: 0;
 }
 
-#helpers > section.machinery .search-wrapper {
-  border: none;
-  margin: 10px;
-}
-
-#helpers > section.machinery .icon {
-  font-size: 17px;
-  left: 10px;
-  right: auto;
-  top: 11px;
-}
-
 #helpers > section.machinery input[type=search] {
-  background: #272A2F;
-  border: 1px solid #4D5967;
-  border-radius: 20px;
-  font-size: 13px;
-  padding: 7px 10px 8px 33px;
+  padding-left: 10px;
 }
 
 #helpers > section ul li {
