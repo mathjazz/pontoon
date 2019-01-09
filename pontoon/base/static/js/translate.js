@@ -331,9 +331,8 @@ var Pontoon = (function (my) {
                       '<time dir="ltr" class="stress" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
                     '</div>' +
                     '<menu class="toolbar">' +
-                      ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a>' : '') +
-                      '<button class="delete far" title="Delete"></button>' +
-                      '<button class="comments far fa-comment' + (self.getCommentsOfType('translation_id', this.pk).length ? ' has' : '') + '" title="Translation Review Comments" data-type="translation"></button>' +
+                      ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> &middot; ' : '') +
+                      '<a href="#" class="comments" title="Translation Review Comments">' + (this.pk === 5763736 ? '<span class="stress">1</span> Comment' : 'Comment') + '</a>' +
                       '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="' +
                        (this.approved ? 'Unapprove' : 'Approve')  + '"></button>' +
                       '<button class="' +
@@ -344,13 +343,13 @@ var Pontoon = (function (my) {
                   '<p class="translation after-avatar" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
                     self.markPlaceables(translationString) +
                   '</p>' +
-                  '<p class="translation-diff" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
+                  '<p class="translation-diff after-avatar" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
                     ((i > 0) ? self.diff(baseString, translationString) : self.markPlaceables(translationString)) +
                   '</p>' +
                   '<p class="translation-clipboard">' +
                     self.doNotRender(this.string) +
                   '</p>' +
-                  '<ul>' +
+                  '<ul class="comments-section">' +
                     '<li class="' + (this.pk === 5681825 ? ' hidden ' : '') + 'add-comment added clearfix">' +
                       '<div class="avatar">' +
                         '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
@@ -358,8 +357,12 @@ var Pontoon = (function (my) {
                         '</a>' +
                       '</div>' +
                       '<header class="wrapper clearfix">' +
-                        '<p class="aha">Jobava &middot; <span class="green">4 months ago</span></p>' +
-                        '<p class="comment">Sposojenk se izogibamo, če obstaja uveljavljen domač izraz</p>' +
+                        '<p class="comment"><a href="#" class="green">Jobava</a> Sposojenk se izogibamo, če obstaja uveljavljen domač izraz.</p>' +
+                        '<p class="toolbar">' +
+                          '<span>2 hours ago</span>' +
+                          ' &middot; ' +
+                          '<a href="#">Delete</a>' +
+                        '</p>' +
                       '</header>' +
                     '</li>' +
                     '<li class="add-comment clearfix">' +
@@ -370,10 +373,13 @@ var Pontoon = (function (my) {
                       '</div>' +
                       '<header class="wrapper clearfix">' +
                         '<textarea id="comment-N" placeholder="Write a comment..."></textarea>' +
-                        '<div class="toolbar">' +
-                          '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="Approve"></button>' +
-                          '<button class="' + (this.rejected ? 'unreject' : 'reject') + ' fa" title="Reject"></button>' +
-                          '</div>' +
+                        '<p class="toolbar">' +
+                          '<a class="special" href="#">Comment</a>' +
+                          ' &middot; ' +
+                          '<a class="reject" href="#">Reject & Comment</a>' +
+                          ' &middot; ' +
+                          '<a href="#">Approve & Comment</a>' +
+                        '</p>' +
                       '</header>' +
                     '</li>' +
                   '</ul>' +
@@ -2576,12 +2582,8 @@ var Pontoon = (function (my) {
       });
 
       // Open translation comments
-      $('#single').on('click', 'button.comments', function (e) {
-        var $button = $(this);
-
-        if ($(this).parents('.suggestion[data-id]').length) {
-          $(this).parents('.suggestion[data-id]').find('.add-comment').show();
-        }
+      $('#single').on('click', '.suggestion[data-id] .comments', function (e) {
+        $(this).parents('.suggestion[data-id]').toggleClass('show-comments');
       });
 
       // Add comment

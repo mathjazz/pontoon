@@ -2050,8 +2050,8 @@ body > header aside p {
   padding-top: 15px;
 }
 
-#helpers > section ul li:not(.disabled):hover,
-#helpers > section ul li:not(.disabled).hover {
+#helpers > section > ul > li:not(.disabled):not(.show-comments):hover,
+#helpers > section > ul > li:not(.disabled):not(.show-comments).hover {
   background: #4D5967;
   border-color: #5E6475;
 }
@@ -2070,7 +2070,7 @@ body > header aside p {
   float: left;
 }
 
-#helpers > section ul li > header .toggle-diff {
+#helpers > section ul li > header .comments {
   margin-right: 6px;
 }
 
@@ -2080,6 +2080,7 @@ body > header aside p {
 
 #helpers > section ul li > header .toolbar {
   float: right;
+  margin-right: 3px;
 }
 
 #helpers > section.history ul li > header .stress,
@@ -2095,7 +2096,7 @@ body > header aside p {
 }
 
 #helpers > section ul li > header .avatar img {
-  border: 1px solid #00000011;
+  border: 1px solid #4D5967;
   border-radius: 4px;
   margin-right: 5px;
 }
@@ -2106,10 +2107,6 @@ body > header aside p {
   left: -1px;
   font-size: 14px;
   color: #FFA10F;
-}
-
-#helpers > section ul li:hover > header .avatar img {
-  border-color: #5E6475;
 }
 
 #helpers > section ul li > header .info a,
@@ -2224,17 +2221,9 @@ body > header aside p {
   color: #F36;
 }
 
-#helpers > section ul li > header button.comments {
-  margin-right: 5px;
-}
-
-#helpers > section ul li > header button.comments.has {
+#helpers > section ul li.show-comments > header .comments,
+#helpers > section ul li > header .comments:hover {
   color: #7BC876;
-}
-
-#helpers > section ul li > header button.comments.active,
-#helpers > section ul li > header button.comments:hover {
-  font-weight: 700;
 }
 
 
@@ -2474,12 +2463,6 @@ body > header aside p {
   width: 100px;
 }
 
-#third-column #helpers > section.comments .title {
-  color: #ccc;
-  padding-bottom: 7px;
-  text-align: center;
-}
-
 button.comments {
   background: transparent;
   border: none;
@@ -2489,51 +2472,39 @@ button.comments {
   padding: 0;
 }
 
-button.comments.has {
-  color: #7BC876;
-}
-
-button.comments.active,
-button.comments:hover {
-  font-weight: 700;
-}
-
-#source-pane button.comments {
-  float: right;
-}
-
-#sidebar .topbar button.comments {
-  float: right;
-  margin-left: 30px;
-}
-
 
 
 /* Inline Comments */
-#helpers > section.history ul li.add-comment {
+#helpers > section.history ul li ul.comments-section {
   display: none;
-  padding: 5px 0 5px 10px;
-  border: none;
-  border-left: 2px solid #272A2F;
-  margin-left: 30px;
+  margin-top: 10px;
+  margin-bottom: -10px;
 }
 
-#helpers > section.history ul li.add-comment.added {
-  border-color: #7BC876;
+#helpers > section.history ul li.show-comments ul.comments-section {
+  display: block;
+}
+
+#helpers > section.history ul li.add-comment {
+  padding: 0 0 5px;
+  border: none;
+  margin-left: 47px;
 }
 
 #helpers > section.history ul li.add-comment .avatar {
   float: left;
-  margin-right: 10px;
+  margin-right: 5px;
+  margin-top: 1px;
 }
 
 #helpers > section.history ul li.add-comment .avatar img {
+  border: 1px solid #4D5967;
   border-radius: 4px;
 }
 
 #helpers > section.history ul li.add-comment .wrapper {
   float: left;
-  width: calc(100% - 54px);
+  width: calc(100% - 39px);
   position: relative;
 }
 
@@ -2542,27 +2513,49 @@ button.comments:hover {
   border: 1px solid #4D5967;
   border-radius: 4px;
   color: #FFF;
-  height: 45px;
+  font-size: 12px;
+  font-weight: 300;
+  height: 34px;
+  line-height: 16px;
+  padding: 8px 54px 8px 8px;
   resize: none;
 }
 
-#helpers > section.history ul li.add-comment .wrapper .toolbar {
-  position: absolute;
-  right: 10px;
-  top: 12px;
+#helpers > section.history ul li.add-comment p.comment {
+  color: #DDDDDD;
+  font-size: 12px;
+  font-weight: 300;
+  text-transform: none;
+  padding: 8px;
+  background: #4D5967;
+  border-radius: 4px;
+  line-height: 20px;
+  border: 1px solid #4D5967;
+  display: inline-block;
+  float: left;
 }
 
-#helpers > section.history ul li.add-comment p.aha span.green {
+#helpers > section.history ul li.add-comment p.comment .green {
+  color: #7BC876;
+  font-weight: 400;
+  padding-right: 5px;
+}
+
+#helpers > section.history ul li.add-comment p.toolbar {
+  clear: both;
+  float: none;
+  padding: 0 8px;
+  text-transform: none;
+}
+
+#helpers > section.history ul li.add-comment p.toolbar a {
+  text-transform: uppercase;
+}
+
+#helpers > section.history ul li.add-comment p.toolbar .special {
   color: #7BC876;
 }
 
-#helpers > section.history ul li.add-comment p.comment {
-  text-transform: none;
-  font-style: italic;
-  font-weight: 400;
-  font-size: 13px;
-}
-
-#helpers > section.history ul p.translation {
-  padding-bottom: 5px;
+#helpers > section.history ul li.add-comment p.toolbar .reject:hover {
+  color: #F36;
 }
