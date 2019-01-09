@@ -2087,8 +2087,49 @@ body > header aside p {
   padding-right: 0;
 }
 
-#helpers > section.history ul li > header .info a {
+#helpers > section ul li > header .avatar {
+  float: left;
+  height: 0;
+  margin-top: 4px;
+  position: relative;
+}
+
+#helpers > section ul li > header .avatar img {
+  border: 1px solid #00000011;
+  border-radius: 4px;
+  margin-right: 5px;
+}
+
+#helpers > section ul li > header .avatar a .icon {
+  position: absolute;
+  bottom: -10px;
+  left: -1px;
+  font-size: 14px;
+  color: #FFA10F;
+}
+
+#helpers > section ul li:hover > header .avatar img {
+  border-color: #5E6475;
+}
+
+#helpers > section ul li > header .info a,
+#helpers > section ul li > header .info span {
+  color: #7BC876;
+  font-weight: 400;
   text-transform: none;
+}
+
+#helpers > section ul li > header .info time {
+  color: #AAAAAA;
+  text-transform: none;
+}
+
+#helpers > section ul li > header .info time:before {
+  content: "· ";
+}
+
+#helpers > section ul li > p.after-avatar {
+  padding-left: 47px;
 }
 
 #helpers > section ul li > header button {
@@ -2362,7 +2403,7 @@ body > header aside p {
 
 #third-column #helpers > section.comments ul li {
   cursor: auto;
-  padding: 15px 10px;
+  padding: 20px 10px;
 }
 
 #third-column #helpers > section.machinery > ul > li:first-child {
@@ -2371,38 +2412,6 @@ body > header aside p {
 
 #third-column #helpers > section.comments ul li header {
   margin-top: -5px;
-}
-
-#third-column #helpers > section.comments ul li header .avatar {
-  float: left;
-  height: 0;
-  margin-top: 4px;
-  position: relative;
-}
-
-#third-column #helpers > section.comments ul li header .avatar img {
-  border: 2px solid #4D5967;
-  border-radius: 4px;
-}
-
-#third-column #helpers > section.comments ul li header .avatar a .icon {
-  position: absolute;
-  bottom: -10px;
-  left: -1px;
-  font-size: 14px;
-  color: #FFA10F;
-}
-
-#third-column #helpers > section.comments ul li:hover header .avatar img {
-  border-color: #5E6475;
-}
-
-#third-column #helpers > section.comments ul li header .info {
-  padding-left: 7px;
-}
-
-#third-column #helpers > section.comments ul li header .info a {
-  text-transform: none;
 }
 
 #third-column #helpers > section.comments ul li header .toolbar {
@@ -2422,10 +2431,6 @@ body > header aside p {
 
 #third-column #helpers > section.comments ul li header button.delete:before {
   content: "";
-}
-
-#third-column #helpers > section.comments ul li p {
-  padding-left: 55px;
 }
 
 #third-column #helpers > section.comments .banner {
@@ -2559,5 +2564,5 @@ button.comments:hover {
 }
 
 #helpers > section.history ul p.translation {
-  padding-bottom: 10px;
+  padding-bottom: 5px;
 }

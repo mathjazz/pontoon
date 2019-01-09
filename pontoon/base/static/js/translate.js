@@ -320,6 +320,11 @@ var Pontoon = (function (my) {
                       ((!entity.readonly && self.user.id && self.user.id === this.uid && !this.approved) ?
                         ' own' : '')) +
                     '">' +
+                    '<div class="avatar">' +
+                      '<a href="/contributors/' + this.username + '" target="_blank">' +
+                        '<img width="40" height="40" src="' + this.gravatar_url + '">' +
+                      '</a>' +
+                    '</div>' +
                     '<div class="info">' +
                       ((!this.uid) ? '<span>' + this.user + '</span>' :
                         '<a href="/contributors/' + this.username + '" title="' + self.getApproveButtonTitle(this) + '" target="_blank">' + this.user + '</a>') +
@@ -336,7 +341,7 @@ var Pontoon = (function (my) {
                        (this.rejected ? 'Unreject' : 'Reject') + '"></button>' +
                     '</menu>' +
                   '</header>' +
-                  '<p class="translation" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
+                  '<p class="translation after-avatar" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
                     self.markPlaceables(translationString) +
                   '</p>' +
                   '<p class="translation-diff" dir="' + self.locale.direction + '" lang="' + self.locale.code + '" data-script="' + self.locale.script + '">' +
@@ -349,7 +354,7 @@ var Pontoon = (function (my) {
                     '<li class="' + (this.pk === 5681825 ? ' hidden ' : '') + 'add-comment added clearfix">' +
                       '<div class="avatar">' +
                         '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
-                          '<img src="//www.gravatar.com/avatar/b84878e5f05114988a715bb9f3742e2f?s=44" width="44" height="44">' +
+                          '<img src="//www.gravatar.com/avatar/b84878e5f05114988a715bb9f3742e2f?s=120" width="32" height="32">' +
                         '</a>' +
                       '</div>' +
                       '<header class="wrapper clearfix">' +
@@ -360,7 +365,7 @@ var Pontoon = (function (my) {
                     '<li class="add-comment clearfix">' +
                       '<div class="avatar">' +
                         '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
-                          '<img src="//www.gravatar.com/avatar/b7aed7b21e849ab3d67ffd811313a75b?s=44" width="44" height="44">' +
+                          '<img src="//www.gravatar.com/avatar/b7aed7b21e849ab3d67ffd811313a75b?s=120" width="32" height="32">' +
                         '</a>' +
                       '</div>' +
                       '<header class="wrapper clearfix">' +
@@ -459,7 +464,7 @@ var Pontoon = (function (my) {
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
               (comment.pk === 6 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
-              '<img width="44" height="44" src="' + comment.gravatar_url + '">' +
+              '<img width="40" height="40" src="' + comment.gravatar_url + '">' +
             '</a>' +
           '</div>' +
           '<div class="info">' +
@@ -470,7 +475,7 @@ var Pontoon = (function (my) {
             '<button class="delete far" title="Delete comment"></button>' +
           '</menu>' +
         '</header>' +
-        '<p>' + this.doNotRender(comment.content) + '</p>' +
+        '<p class="after-avatar">' + this.doNotRender(comment.content) + '</p>' +
       '</li>');
     },
 

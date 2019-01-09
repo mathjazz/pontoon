@@ -3414,7 +3414,7 @@ class Comment(models.Model):
             'pk': self.pk,
             'user': self.author.name_or_email,
             'username': self.author.username,
-            'gravatar_url': self.author.gravatar_url(44),
+            'gravatar_url': self.author.gravatar_url(160),
             'date': self.date.strftime('%b %d, %Y %H:%M'),
             'date_iso': self.date.isoformat() + timezone.now().strftime('%z'),
             'content': self.content,

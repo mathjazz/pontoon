@@ -1,7 +1,7 @@
 {% macro button() %}
 <div class="button selector">
   {% if user.is_authenticated() %}
-    <img class="rounded" src="{{ user.gravatar_url(44) }}">
+    <img class="rounded" src="{{ user.gravatar_url(160) }}">
   {% else %}
     <div class="menu-icon fa fa-bars"></div>
   {% endif %}
