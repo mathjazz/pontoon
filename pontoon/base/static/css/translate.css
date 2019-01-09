@@ -2455,24 +2455,14 @@ body > header aside p {
   float: left;
   font-size: 12px;
   font-weight: 300;
-  height: 84px;
-  line-height: 18px;
-  padding: 5px;
+  height: 34px;
+  line-height: 16px;
+  padding: 8px;
   width: calc(100% - 39px);
 }
 
 #third-column #helpers > section.comments form #add-comment {
-  background: #7BC876;
-  border: none;
-  border-radius: 2px;
-  color: #272A2F;
-  float: right;
-  font-weight: 400;
-  height: auto;
-  margin-top: 5px;
-  padding: 6px;
-  text-transform: uppercase;
-  width: 100px;
+
 }
 
 button.comments {
@@ -2555,10 +2545,19 @@ button.comments {
   text-transform: none;
 }
 
+#helpers > section form p.toolbar {
+  color: #AAA;
+  font-size: 11px;
+  font-weight: 300;
+  margin-left: 47px;
+}
+
+#helpers > section form p.toolbar a,
 #helpers > section ul li.comment p.toolbar a {
   text-transform: uppercase;
 }
 
+#helpers > section form p.toolbar .special,
 #helpers > section ul li.comment p.toolbar .special {
   color: #7BC876;
 }
