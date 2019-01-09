@@ -311,6 +311,31 @@ var Pontoon = (function (my) {
               var baseString = self.fluent.getSimplePreview(data[0].string),
                   translationString = self.fluent.getSimplePreview(this.string);
 
+              var translation_comments = self.getCommentsOfType('translation_id', this.pk);
+              var comments = '';
+
+              console.log(translation_comments);
+
+              $.each(translation_comments, function(i, comment) {
+                comments += (
+                  '<li class="add-comment added clearfix">' +
+                    '<div class="avatar">' +
+                      '<a href="/contributors/' + comment.username + '" target="_blank">' +
+                        '<img src="' + comment.gravatar_url + '" width="32" height="32">' +
+                      '</a>' +
+                    '</div>' +
+                    '<header class="wrapper clearfix">' +
+                      '<p class="comment"><a href="#" class="green">' + comment.user + '</a>' + comment.content + '</p>' +
+                      '<p class="toolbar">' +
+                        '<time dir="ltr" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+                        ' • ' +
+                        '<a class="delete" href="#">Delete</a>' +
+                      '</p>' +
+                    '</header>' +
+                  '</li>'
+                );
+              });
+
               list.append(
                 '<li data-id="' + this.pk + '" class="suggestion ' +
                 (this.approved ? 'translated' : this.rejected ? 'rejected' : this.fuzzy ? 'fuzzy' : 'unreviewed') +
@@ -328,11 +353,11 @@ var Pontoon = (function (my) {
                     '<div class="info">' +
                       ((!this.uid) ? '<span>' + this.user + '</span>' :
                         '<a href="/contributors/' + this.username + '" title="' + self.getApproveButtonTitle(this) + '" target="_blank">' + this.user + '</a>') +
-                      '<time dir="ltr" class="stress" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
+                      '<time dir="ltr" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
                     '</div>' +
                     '<menu class="toolbar">' +
-                      ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> &middot; ' : '') +
-                      '<a href="#" class="comments" title="Translation Review Comments">' + (this.pk === 5763736 ? '<span class="stress">1</span> Comment' : 'Comment') + '</a>' +
+                      ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> • ' : '') +
+                      '<a href="#" class="comments" title="Translation Review Comments">' + (translation_comments.length ? '<span class="stress">' + translation_comments.length + '</span> Comment' : 'Comment') + '</a>' +
                       '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="' +
                        (this.approved ? 'Unapprove' : 'Approve')  + '"></button>' +
                       '<button class="' +
@@ -350,34 +375,20 @@ var Pontoon = (function (my) {
                     self.doNotRender(this.string) +
                   '</p>' +
                   '<ul class="comments-section">' +
-                    '<li class="' + (this.pk === 5681825 ? ' hidden ' : '') + 'add-comment added clearfix">' +
-                      '<div class="avatar">' +
-                        '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
-                          '<img src="//www.gravatar.com/avatar/b84878e5f05114988a715bb9f3742e2f?s=120" width="32" height="32">' +
-                        '</a>' +
-                      '</div>' +
-                      '<header class="wrapper clearfix">' +
-                        '<p class="comment"><a href="#" class="green">Jobava</a> Sposojenk se izogibamo, če obstaja uveljavljen domač izraz.</p>' +
-                        '<p class="toolbar">' +
-                          '<span>2 hours ago</span>' +
-                          ' &middot; ' +
-                          '<a href="#">Delete</a>' +
-                        '</p>' +
-                      '</header>' +
-                    '</li>' +
+                    comments +
                     '<li class="add-comment clearfix">' +
                       '<div class="avatar">' +
-                        '<a href="/contributors/dvgiVCmoeidF2xcqSnBHtpzLTFU" target="_blank">' +
-                          '<img src="//www.gravatar.com/avatar/b7aed7b21e849ab3d67ffd811313a75b?s=120" width="32" height="32">' +
+                        '<a href="/profile" target="_blank">' +
+                          '<img src="' + $('#profile img').attr("src") + '" width="32" height="32">' +
                         '</a>' +
                       '</div>' +
                       '<header class="wrapper clearfix">' +
                         '<textarea id="comment-N" placeholder="Write a comment..."></textarea>' +
                         '<p class="toolbar">' +
                           '<a class="special" href="#">Comment</a>' +
-                          ' &middot; ' +
+                          ' • ' +
                           '<a class="reject" href="#">Reject & Comment</a>' +
-                          ' &middot; ' +
+                          ' • ' +
                           '<a href="#">Approve & Comment</a>' +
                         '</p>' +
                       '</header>' +
@@ -475,7 +486,7 @@ var Pontoon = (function (my) {
           '</div>' +
           '<div class="info">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
-            '<time class="stress" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+            '<time datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
           '</div>' +
           '<menu class="toolbar">' +
             '<button class="delete far" title="Delete comment"></button>' +
@@ -778,7 +789,7 @@ var Pontoon = (function (my) {
           '<span class="title"></span> ' +
           '<span class="content">' +
             '<a href="#">Request context</a>' +
-              ' &middot; ' +
+              ' • ' +
             '<a href="#">Report issue</a>' +
           '</span>' +
         '</p>');
@@ -842,7 +853,7 @@ var Pontoon = (function (my) {
         var projectLink = '/' + self.locale.code + '/' +  entity.project.slug + '/';
         self.appendMetaData('Resource', entity.path, link, linkClass);
         $('#metadata .resource .content').prepend(
-          '<a href="' + projectLink + '">' + entity.project.name + '</a> &middot; '
+          '<a href="' + projectLink + '">' + entity.project.name + '</a> •; '
         );
       }
 

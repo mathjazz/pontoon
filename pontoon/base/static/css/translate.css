@@ -2122,7 +2122,7 @@ body > header aside p {
 }
 
 #helpers > section ul li > header .info time:before {
-  content: "· ";
+  content: " • ";
 }
 
 #helpers > section ul li > p.after-avatar {
@@ -2477,7 +2477,7 @@ button.comments {
 /* Inline Comments */
 #helpers > section.history ul li ul.comments-section {
   display: none;
-  margin-top: 10px;
+  margin-top: 15px;
   margin-bottom: -10px;
 }
 
@@ -2531,7 +2531,6 @@ button.comments {
   border-radius: 4px;
   line-height: 20px;
   border: 1px solid #4D5967;
-  display: inline-block;
   float: left;
 }
 
@@ -2556,6 +2555,7 @@ button.comments {
   color: #7BC876;
 }
 
+#helpers > section.history ul li.add-comment p.toolbar .delete:hover,
 #helpers > section.history ul li.add-comment p.toolbar .reject:hover {
   color: #F36;
 }
