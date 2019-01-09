@@ -339,6 +339,7 @@ var Pontoon = (function (my) {
                     '<menu class="toolbar">' +
                       ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> • ' : '') +
                       '<a href="#" class="comments" title="Translation Review Comments">' + (translation_comments.length ? '<span class="stress">' + translation_comments.length + '</span> Comment' : 'Comment') + '</a>' +
+                      '<button class="delete far" title="Delete"></button>' +
                       '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="' +
                        (this.approved ? 'Unapprove' : 'Approve')  + '"></button>' +
                       '<button class="' +
