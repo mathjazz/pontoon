@@ -2066,7 +2066,7 @@ body > header aside p {
 }
 
 #helpers > section ul li > header .comments {
-  margin-right: 6px;
+  margin-right: 4px;
 }
 
 #helpers > section ul li > header .toggle-diff.active {
@@ -2081,6 +2081,10 @@ body > header aside p {
 #helpers > section.history ul li > header .stress,
 #helpers > section.other-locales ul li > header .stress {
   padding-right: 0;
+}
+
+#helpers > section.history ul li header .stress {
+  padding-left: 0;
 }
 
 #helpers > section ul li > header .avatar {
@@ -2512,8 +2516,9 @@ button.comments {
   font-weight: 300;
   height: 34px;
   line-height: 16px;
-  padding: 8px 54px 8px 8px;
+  padding: 8px;
   resize: none;
+  overflow: hidden;
 }
 
 #helpers > section.history ul li.add-comment p.comment {

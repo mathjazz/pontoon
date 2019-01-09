@@ -383,7 +383,7 @@ var Pontoon = (function (my) {
                         '</a>' +
                       '</div>' +
                       '<header class="wrapper clearfix">' +
-                        '<textarea id="comment-N" placeholder="Write a comment..."></textarea>' +
+                        '<textarea spellcheck="false" id="comment-N" placeholder="Write a comment..."></textarea>' +
                         '<p class="toolbar">' +
                           '<a class="special" href="#">Comment</a>' +
                           ' • ' +
@@ -2331,8 +2331,8 @@ var Pontoon = (function (my) {
           return;
         }
 
-        // Ignore clicks on links and buttons
-        if ($(e.target).closest('a, menu button').length) {
+        // Ignore clicks on links, buttons and text inputs
+        if ($(e.target).closest('a, menu button, textarea, input').length) {
           return;
         }
 
