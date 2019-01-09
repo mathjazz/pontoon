@@ -421,35 +421,6 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Get button element of the currently open comment section
-     */
-    getActiveCommentsButton: function () {
-      var type = $('#helpers > section.comments').data('type');
-      var translation_id = $('#helpers > section.comments').data('translation_id');
-      var $button = $('#single button.comments[data-type="' + type + '"]');
-
-      if (type === 'translation') {
-        $button = $('#helpers .history [data-id="' + translation_id + '"] button.comments');
-      }
-
-      return $button;
-    },
-
-
-    /*
-     * Reset comment icon active status
-     */
-    resetActiveCommentIcons: function (isCommentsTabActive) {
-      $('#single button.comments').removeClass('active');
-
-      if (isCommentsTabActive) {
-        var $button = this.getActiveCommentsButton();
-        $button.addClass('active');
-      }
-    },
-
-
-    /*
      * Update comment icons in the UI to designate existing comments
      */
     markIconsWithComments: function () {
@@ -940,8 +911,6 @@ var Pontoon = (function (my) {
       self.updateCachedTranslation();
       self.toggleFailedChecks(translation);
       self.updateHelpers();
-      var section = $('#helpers.tabs nav li.active a').attr('href').substr(1);
-      self.resetActiveCommentIcons(section === 'comments');
       self.markIconsWithComments();
       self.pushState();
     },
