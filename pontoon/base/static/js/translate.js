@@ -82,7 +82,7 @@ var Pontoon = (function (my) {
             translationString +
           '</span>' +
         '</p>' +
-        '<span class="' + (entity.comments.length ? 'has ' : '') + 'comments far fa-comment fa-lg"></span>' +
+        '<span class="comments far fa-comment fa-lg"></span>' +
         '<span class="arrow fa fa-chevron-right fa-lg"></span>' +
         '</li>', self.app.win);
       li[0].entity = entity;
@@ -443,34 +443,6 @@ var Pontoon = (function (my) {
 
 
     /*
-     * Update comment icons in the UI to designate existing comments
-     */
-    markIconsWithComments: function () {
-      var self = this;
-      var entity = self.getEditorEntity();
-      var comments = entity.comments;
-
-      // Sidebar
-      entity.ui.find('.comments').toggleClass('has', comments.length > 0);
-
-      // Locale
-      comments = self.getCommentsOfType('locale');
-      $('#single .topbar button.comments').toggleClass('has', comments.length > 0);
-
-      // Entity
-      comments = self.getCommentsOfType('entity');
-      $('#single #source-pane button.comments').toggleClass('has', comments.length > 0);
-
-      // Translation
-      $('#helpers > section ul li > header button.comments').each(function() {
-        var translation_id = $(this).parents('.suggestion[data-id]').data('id');
-        var translation_comments = self.getCommentsOfType('translation_id', translation_id);
-        $(this).toggleClass('has', translation_comments.length > 0);
-      });
-    },
-
-
-    /*
      * Get entity and translation comments
      */
     appendComment: function (comment) {
@@ -789,7 +761,7 @@ var Pontoon = (function (my) {
           '<span class="title"></span> ' +
           '<span class="content">' +
             '<a href="#">Request context</a>' +
-              ' • ' +
+              ' &middot; ' +
             '<a href="#">Report issue</a>' +
           '</span>' +
         '</p>');
@@ -853,7 +825,7 @@ var Pontoon = (function (my) {
         var projectLink = '/' + self.locale.code + '/' +  entity.project.slug + '/';
         self.appendMetaData('Resource', entity.path, link, linkClass);
         $('#metadata .resource .content').prepend(
-          '<a href="' + projectLink + '">' + entity.project.name + '</a> •; '
+          '<a href="' + projectLink + '">' + entity.project.name + '</a> &middot; '
         );
       }
 
@@ -933,7 +905,6 @@ var Pontoon = (function (my) {
       self.updateCachedTranslation();
       self.toggleFailedChecks(translation);
       self.updateHelpers();
-      self.markIconsWithComments();
       self.pushState();
     },
 
@@ -2619,7 +2590,6 @@ var Pontoon = (function (my) {
             entity.comments.push(data);
             self.endLoader('Comment sent.');
             self.appendComment(data);
-            self.markIconsWithComments();
             $('#helpers > section.comments time').timeago();
             $('#comment').val('');
           },
@@ -2655,7 +2625,6 @@ var Pontoon = (function (my) {
             });
             self.endLoader('Comment removed.');
             comment.remove();
-            self.markIconsWithComments();
           },
           error: function(d) {
             self.endLoader('Oops, something went wrong.', 'error');

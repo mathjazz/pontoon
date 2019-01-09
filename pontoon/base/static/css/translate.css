@@ -1166,13 +1166,8 @@ body > header aside p {
   display: none;
 }
 
-#entitylist > .wrapper > ul > li .has.comments,
 #entitylist > .wrapper > ul > li:hover .arrow {
   display: block;
-}
-
-#entitylist > .wrapper > ul > li .has.comments {
-  font-size: 19.8px;
 }
 
 #entitylist > .wrapper > ul > li:hover .comments {
@@ -2526,7 +2521,7 @@ button.comments {
   font-size: 12px;
   font-weight: 300;
   text-transform: none;
-  padding: 8px;
+  padding: 6px 8px;
   background: #4D5967;
   border-radius: 4px;
   line-height: 20px;
