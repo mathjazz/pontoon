@@ -541,7 +541,12 @@
         <ul></ul>
         {% if user.is_authenticated() %}
           <form class="clearfix">
-            <textarea id="comment" placeholder="Write a comment..."></textarea>
+            <div class="avatar">
+              <a href="{{ url('pontoon.contributors.profile') }}" target="_blank">
+                <img src="{{ user.gravatar_url(160) }}" width="32" height="32">
+              </a>
+            </div>
+            <textarea id="comment" spellcheck="false" placeholder="Write a comment..."></textarea>
             <button id="add-comment" class="button">Send</button>
           </form>
         {% else %}

@@ -1158,8 +1158,7 @@ body > header aside p {
   background-color: #4D5967;
 }
 
-#entitylist > .wrapper > ul > li .arrow,
-#entitylist > .wrapper > ul > li .comments {
+#entitylist > .wrapper > ul > li .arrow {
   color: #CCCCCC;
   float: right;
   margin: -33px -15px;
@@ -1168,10 +1167,6 @@ body > header aside p {
 
 #entitylist > .wrapper > ul > li:hover .arrow {
   display: block;
-}
-
-#entitylist > .wrapper > ul > li:hover .comments {
-  display: none;
 }
 
 /* Make selection area bigger and fit the entire row for easier use */
@@ -2045,8 +2040,22 @@ body > header aside p {
   padding-top: 15px;
 }
 
-#helpers > section > ul > li:not(.disabled):not(.show-comments):hover,
-#helpers > section > ul > li:not(.disabled):not(.show-comments).hover {
+#helpers > section.comments ul li {
+  text-align: left;
+}
+
+#helpers > section.history ul li ul.comments-section {
+  display: none;
+  margin-top: 15px;
+  margin-bottom: -10px;
+}
+
+#helpers > section.history ul li.show-comments ul.comments-section {
+  display: block;
+}
+
+#helpers > section:not(.comments) > ul > li:not(.disabled):not(.show-comments):hover,
+#helpers > section:not(.comments) > ul > li:not(.disabled):not(.show-comments).hover {
   background: #4D5967;
   border-color: #5E6475;
 }
@@ -2100,11 +2109,14 @@ body > header aside p {
   margin-right: 5px;
 }
 
-#helpers > section ul li > header .avatar a .icon {
+#helpers > section.comments ul li .avatar {
+  position: relative;
+}
+
+#helpers > section.comments ul li .avatar a .icon {
   position: absolute;
-  bottom: -10px;
-  left: -1px;
-  font-size: 14px;
+  bottom: 32px;
+  font-size: 12px;
   color: #FFA10F;
 }
 
@@ -2391,19 +2403,11 @@ body > header aside p {
 
 #third-column #helpers > section.comments ul li {
   cursor: auto;
-  padding: 20px 10px;
+  padding: 10px 10px 0;
 }
 
 #third-column #helpers > section.machinery > ul > li:first-child {
   border-top: 1px solid #5E6475;
-}
-
-#third-column #helpers > section.comments ul li header {
-  margin-top: -5px;
-}
-
-#third-column #helpers > section.comments ul li header .toolbar {
-  cursor: pointer;
 }
 
 #third-column #helpers > section.comments ul li header button.delete {
@@ -2435,17 +2439,26 @@ body > header aside p {
   padding: 10px;
 }
 
+#third-column #helpers > section.comments form .avatar img {
+  border: 1px solid #4D5967;
+  border-radius: 4px;
+  float: left;
+  margin-right: 5px;
+}
+
 #third-column #helpers > section.comments form #comment {
   background: #272A2F;
   border-radius: 4px;
   border: 1px solid #4D5967;
   box-sizing: border-box;
   color: #FFFFFF;
-  font-size: 13px;
+  float: left;
+  font-size: 12px;
   font-weight: 300;
   height: 84px;
+  line-height: 18px;
   padding: 5px;
-  width: 100%;
+  width: calc(100% - 39px);
 }
 
 #third-column #helpers > section.comments form #add-comment {
@@ -2473,41 +2486,36 @@ button.comments {
 
 
 
-/* Inline Comments */
-#helpers > section.history ul li ul.comments-section {
-  display: none;
-  margin-top: 15px;
-  margin-bottom: -10px;
-}
 
-#helpers > section.history ul li.show-comments ul.comments-section {
-  display: block;
+
+/* Comments */
+#helpers > section ul li.add-comment {
+  padding: 0 0 5px;
+  border: none;
 }
 
 #helpers > section.history ul li.add-comment {
-  padding: 0 0 5px;
-  border: none;
   margin-left: 47px;
 }
 
-#helpers > section.history ul li.add-comment .avatar {
+#helpers > section ul li.add-comment .avatar {
   float: left;
   margin-right: 5px;
   margin-top: 1px;
 }
 
-#helpers > section.history ul li.add-comment .avatar img {
+#helpers > section ul li.add-comment .avatar img {
   border: 1px solid #4D5967;
   border-radius: 4px;
 }
 
-#helpers > section.history ul li.add-comment .wrapper {
+#helpers > section ul li.add-comment .wrapper {
   float: left;
   width: calc(100% - 39px);
   position: relative;
 }
 
-#helpers > section.history ul li.add-comment .wrapper #comment-N {
+#helpers > section ul li.add-comment .wrapper #comment-N {
   background: #272A2F;
   border: 1px solid #4D5967;
   border-radius: 4px;
@@ -2521,7 +2529,7 @@ button.comments {
   overflow: hidden;
 }
 
-#helpers > section.history ul li.add-comment p.comment {
+#helpers > section ul li.add-comment p.comment {
   color: #DDDDDD;
   font-size: 12px;
   font-weight: 300;
@@ -2534,28 +2542,28 @@ button.comments {
   float: left;
 }
 
-#helpers > section.history ul li.add-comment p.comment .green {
+#helpers > section ul li.add-comment p.comment .green {
   color: #7BC876;
   font-weight: 400;
   padding-right: 5px;
 }
 
-#helpers > section.history ul li.add-comment p.toolbar {
+#helpers > section ul li.add-comment p.toolbar {
   clear: both;
   float: none;
   padding: 0 8px;
   text-transform: none;
 }
 
-#helpers > section.history ul li.add-comment p.toolbar a {
+#helpers > section ul li.add-comment p.toolbar a {
   text-transform: uppercase;
 }
 
-#helpers > section.history ul li.add-comment p.toolbar .special {
+#helpers > section ul li.add-comment p.toolbar .special {
   color: #7BC876;
 }
 
-#helpers > section.history ul li.add-comment p.toolbar .delete:hover,
-#helpers > section.history ul li.add-comment p.toolbar .reject:hover {
+#helpers > section ul li.add-comment p.toolbar .delete:hover,
+#helpers > section ul li.add-comment p.toolbar .reject:hover {
   color: #F36;
 }

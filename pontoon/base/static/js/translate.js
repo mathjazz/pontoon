@@ -82,7 +82,6 @@ var Pontoon = (function (my) {
             translationString +
           '</span>' +
         '</p>' +
-        '<span class="comments far fa-comment fa-lg"></span>' +
         '<span class="arrow fa fa-chevron-right fa-lg"></span>' +
         '</li>', self.app.win);
       li[0].entity = entity;
@@ -314,26 +313,8 @@ var Pontoon = (function (my) {
               var translation_comments = self.getCommentsOfType('translation_id', this.pk);
               var comments = '';
 
-              console.log(translation_comments);
-
               $.each(translation_comments, function(i, comment) {
-                comments += (
-                  '<li class="add-comment added clearfix">' +
-                    '<div class="avatar">' +
-                      '<a href="/contributors/' + comment.username + '" target="_blank">' +
-                        '<img src="' + comment.gravatar_url + '" width="32" height="32">' +
-                      '</a>' +
-                    '</div>' +
-                    '<header class="wrapper clearfix">' +
-                      '<p class="comment"><a href="#" class="green">' + comment.user + '</a>' + comment.content + '</p>' +
-                      '<p class="toolbar">' +
-                        '<time dir="ltr" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
-                        ' • ' +
-                        '<a class="delete" href="#">Delete</a>' +
-                      '</p>' +
-                    '</header>' +
-                  '</li>'
-                );
+                comments += self.getCommentHTML(comment);
               });
 
               list.append(
@@ -445,27 +426,36 @@ var Pontoon = (function (my) {
     /*
      * Get entity and translation comments
      */
-    appendComment: function (comment) {
-      var list = $('#helpers > section.comments ul');
-
-      list.append('<li class="comment clearfix" data-id="' + comment.pk + '">' +
-        '<header class="clearfix">' +
+    getCommentHTML: function (comment) {
+      return (
+        '<li class="add-comment added clearfix" data-id="' + comment.pk + '">' +
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
-              (comment.pk === 6 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
-              '<img width="40" height="40" src="' + comment.gravatar_url + '">' +
+              (comment.content.indexOf('pinned') > -1 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
+              '<img src="' + comment.gravatar_url + '" width="32" height="32">' +
             '</a>' +
           '</div>' +
-          '<div class="info">' +
-            '<a href="/contributors/' + comment.username + '" target="_blank">' + comment.user + '</a>' +
-            '<time datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
-          '</div>' +
-          '<menu class="toolbar">' +
-            '<button class="delete far" title="Delete comment"></button>' +
-          '</menu>' +
-        '</header>' +
-        '<p class="after-avatar">' + this.doNotRender(comment.content) + '</p>' +
-      '</li>');
+          '<header class="wrapper clearfix">' +
+            '<p class="comment"><a href="/contributors/' + comment.username + '" target="_blank" class="green">' + comment.user + '</a>' + this.doNotRender(comment.content) + '</p>' +
+            '<p class="toolbar">' +
+              '<time dir="ltr" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
+              ' • ' +
+              '<a class="delete" href="#">Delete</a>' +
+              ' • ' +
+              '<a class="permalink" href="#">Share</a>' +
+            '</p>' +
+          '</header>' +
+        '</li>'
+      );
+    },
+
+
+    /*
+     * Get entity and translation comments
+     */
+    appendComment: function (comment) {
+      var list = $('#helpers > section.comments ul');
+      list.append(this.getCommentHTML(comment));
     },
 
     /*
