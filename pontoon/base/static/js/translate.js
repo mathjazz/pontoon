@@ -358,7 +358,7 @@ var Pontoon = (function (my) {
                   '</p>' +
                   '<ul class="comments-section">' +
                     comments +
-                    '<li class="add-comment clearfix">' +
+                    '<li class="comment clearfix">' +
                       '<div class="avatar">' +
                         '<a href="/profile" target="_blank">' +
                           '<img src="' + $('#profile img').attr("src") + '" width="32" height="32">' +
@@ -429,7 +429,7 @@ var Pontoon = (function (my) {
      */
     getCommentHTML: function (comment) {
       return (
-        '<li class="add-comment added clearfix" data-id="' + comment.pk + '">' +
+        '<li class="comment added clearfix" data-id="' + comment.pk + '">' +
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
               (comment.content.indexOf('pinned') > -1 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
@@ -2593,7 +2593,7 @@ var Pontoon = (function (my) {
       });
 
       // Delete comment
-      $('#helpers > section.comments ul').on('click', '.comment .toolbar', function (e) {
+      $('#helpers > section.comments ul').on('click', '.toolbar .delete', function (e) {
         self.NProgressUnbind();
 
         if (self.XHRdeleteComment) {

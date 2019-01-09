@@ -2489,33 +2489,33 @@ button.comments {
 
 
 /* Comments */
-#helpers > section ul li.add-comment {
+#helpers > section ul li.comment {
   padding: 0 0 5px;
   border: none;
 }
 
-#helpers > section.history ul li.add-comment {
+#helpers > section.history ul li.comment {
   margin-left: 47px;
 }
 
-#helpers > section ul li.add-comment .avatar {
+#helpers > section ul li.comment .avatar {
   float: left;
   margin-right: 5px;
   margin-top: 1px;
 }
 
-#helpers > section ul li.add-comment .avatar img {
+#helpers > section ul li.comment .avatar img {
   border: 1px solid #4D5967;
   border-radius: 4px;
 }
 
-#helpers > section ul li.add-comment .wrapper {
+#helpers > section ul li.comment .wrapper {
   float: left;
   width: calc(100% - 39px);
   position: relative;
 }
 
-#helpers > section ul li.add-comment .wrapper #comment-N {
+#helpers > section ul li.comment .wrapper #comment-N {
   background: #272A2F;
   border: 1px solid #4D5967;
   border-radius: 4px;
@@ -2529,7 +2529,7 @@ button.comments {
   overflow: hidden;
 }
 
-#helpers > section ul li.add-comment p.comment {
+#helpers > section ul li.comment p.comment {
   color: #DDDDDD;
   font-size: 12px;
   font-weight: 300;
@@ -2542,28 +2542,28 @@ button.comments {
   float: left;
 }
 
-#helpers > section ul li.add-comment p.comment .green {
+#helpers > section ul li.comment p.comment .green {
   color: #7BC876;
   font-weight: 400;
   padding-right: 5px;
 }
 
-#helpers > section ul li.add-comment p.toolbar {
+#helpers > section ul li.comment p.toolbar {
   clear: both;
   float: none;
   padding: 0 8px;
   text-transform: none;
 }
 
-#helpers > section ul li.add-comment p.toolbar a {
+#helpers > section ul li.comment p.toolbar a {
   text-transform: uppercase;
 }
 
-#helpers > section ul li.add-comment p.toolbar .special {
+#helpers > section ul li.comment p.toolbar .special {
   color: #7BC876;
 }
 
-#helpers > section ul li.add-comment p.toolbar .delete:hover,
-#helpers > section ul li.add-comment p.toolbar .reject:hover {
+#helpers > section ul li.comment p.toolbar .delete:hover,
+#helpers > section ul li.comment p.toolbar .reject:hover {
   color: #F36;
 }
