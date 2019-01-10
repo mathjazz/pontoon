@@ -3409,6 +3409,8 @@ class Comment(models.Model):
     date = models.DateTimeField(default=timezone.now)
     content = models.TextField(blank=True)
 
+    pinned = models.BooleanField(default=False)
+
     def serialize(self):
         return {
             'pk': self.pk,
@@ -3418,6 +3420,7 @@ class Comment(models.Model):
             'date': self.date.strftime('%b %d, %Y %H:%M'),
             'date_iso': self.date.isoformat() + timezone.now().strftime('%z'),
             'content': self.content,
+            'pinned': self.pinned,
             'locale': self.locale_id,
             'translation': self.translation_id,
         }

@@ -2436,7 +2436,7 @@ body > header aside p {
 }
 
 #third-column #helpers > section.comments form {
-  padding: 10px;
+  padding: 11px 10px 10px;
 }
 
 #third-column #helpers > section.comments form .avatar img {

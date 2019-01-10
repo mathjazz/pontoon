@@ -337,8 +337,8 @@ var Pontoon = (function (my) {
                       '<time dir="ltr" datetime="' + this.date_iso + '">' + this.date + ' UTC</time>' +
                     '</div>' +
                     '<menu class="toolbar">' +
-                      ((i > 0) ? '<a href="#" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> • ' : '') +
-                      '<a href="#" class="comments" title="Translation Review Comments">' + (translation_comments.length ? '<span class="stress">' + translation_comments.length + '</span> Comment' : 'Comment') + '</a>' +
+                      ((i > 0) ? '<a href="" class="toggle-diff" data-alternative-text="Hide diff" title="Show diff against the currently active translation">Show diff</a> • ' : '') +
+                      '<a href="" class="comments" title="Translation Review Comments">' + (translation_comments.length ? '<span class="stress">' + translation_comments.length + '</span> Comment' : 'Comment') + '</a>' +
                       '<button class="delete far" title="Delete"></button>' +
                       '<button class="' + (this.approved ? 'unapprove' : 'approve') + ' fa" title="' +
                        (this.approved ? 'Unapprove' : 'Approve')  + '"></button>' +
@@ -367,11 +367,11 @@ var Pontoon = (function (my) {
                       '<header class="wrapper clearfix">' +
                         '<textarea spellcheck="false" id="comment-N" placeholder="Write a comment..."></textarea>' +
                         '<p class="toolbar">' +
-                          '<a class="special" href="#">Comment</a>' +
+                          '<a class="special" href="">Comment</a>' +
                           ' • ' +
-                          '<a class="reject" href="#">Reject & Comment</a>' +
+                          '<a class="reject" href="">Reject & Comment</a>' +
                           ' • ' +
-                          '<a href="#">Approve & Comment</a>' +
+                          '<a href="">Approve & Comment</a>' +
                         '</p>' +
                       '</header>' +
                     '</li>' +
@@ -408,14 +408,8 @@ var Pontoon = (function (my) {
 
       return entity.comments.filter(function(item) {
         switch (type) {
-          case 'entity':
-            return item.translation === null && item.locale === null;
-
           case 'locale':
             return item.translation === null && item.locale !== null;
-
-          case 'translation':
-            return item.translation !== null && item.locale !== null;
 
           case 'translation_id':
             return item.translation === translation_id;
@@ -432,7 +426,7 @@ var Pontoon = (function (my) {
         '<li class="comment added clearfix" data-id="' + comment.pk + '">' +
           '<div class="avatar">' +
             '<a href="/contributors/' + comment.username + '" target="_blank">' +
-              (comment.content.indexOf('pinned') > -1 ? '<span class="icon fa fa-thumbtack"></span>' : '') +
+              (comment.pinned ? '<span class="icon fa fa-thumbtack"></span>' : '') +
               '<img src="' + comment.gravatar_url + '" width="32" height="32">' +
             '</a>' +
           '</div>' +
@@ -441,9 +435,9 @@ var Pontoon = (function (my) {
             '<p class="toolbar">' +
               '<time dir="ltr" datetime="' + comment.date_iso + '">' + comment.date + ' UTC</time>' +
               ' • ' +
-              '<a class="delete" href="#">Delete</a>' +
+              '<a class="delete" href="">Delete</a>' +
               ' • ' +
-              '<a class="permalink" href="#">Share</a>' +
+              '<a class="permalink" href="">Share</a>' +
             '</p>' +
           '</header>' +
         '</li>'
@@ -744,8 +738,19 @@ var Pontoon = (function (my) {
         });
       }
 
-      // TODO: This is hardcoded, replace with actual code
-      self.appendMetaData('Pinned comment', 'This is a pinned PM comment.');
+      // Extract pinned comments
+      var locale_comments = self.getCommentsOfType('locale');
+      var pinned_comments = [];
+
+      $.each(locale_comments, function(i, comment) {
+        if (comment.pinned) {
+          pinned_comments.push(comment.content);
+        }
+      });
+
+      if (pinned_comments.length) {
+        self.appendMetaData('Pinned comment', pinned_comments.join(':'));
+      }
 
       $('#metadata').append(
         '<p>' +
