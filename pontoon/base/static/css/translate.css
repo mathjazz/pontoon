@@ -1190,9 +1190,7 @@ body > header aside p {
 
 #entitylist > .wrapper > ul > li p span {
   display: inline-block;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  padding-bottom: 5px;
   width: 100%;
 }
 
@@ -2075,7 +2073,7 @@ body > header aside p {
 }
 
 #helpers > section ul li > header .comments {
-  margin-right: 4px;
+  margin-right: 5px;
 }
 
 #helpers > section ul li > header .toggle-diff.active {
@@ -2215,10 +2213,6 @@ body > header aside p {
 #helpers > section ul li.rejected > header.own button.delete,
 #helpers > section ul li.rejected > header.translator button.delete {
   display: inline-block;
-}
-
-#helpers > section ul li.rejected > header button.delete {
-  margin-right: 2px;
 }
 
 #helpers > section ul li.rejected > header button.delete:before {

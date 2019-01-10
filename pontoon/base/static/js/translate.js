@@ -1886,7 +1886,7 @@ var Pontoon = (function (my) {
             leftMin: 350,
             rightMin: 350,
             position: e.pageX,
-            leftOffset: $('#entitylist').outerWidth(),
+            leftOffset: $('#entitylist:visible').outerWidth(),
           };
         }
 
@@ -2564,6 +2564,14 @@ var Pontoon = (function (my) {
         $(this).parents('.suggestion[data-id]').toggleClass('show-comments');
       });
 
+      // Prevent events
+      $('#helpers').on('click', 'a.comments, > section ul li.comment p.toolbar a', function (e) {
+        e.preventDefault();
+      });
+      $('#helpers > section.comments').on('click', '.toolbar .permalink, #pin-and-comment', function (e) {
+        e.preventDefault();
+      });
+
       // Add comment
       $('#add-comment').on('click', function (e) {
         e.preventDefault();
@@ -2599,6 +2607,7 @@ var Pontoon = (function (my) {
 
       // Delete comment
       $('#helpers > section.comments ul').on('click', '.toolbar .delete', function (e) {
+        e.preventDefault();
         self.NProgressUnbind();
 
         if (self.XHRdeleteComment) {
