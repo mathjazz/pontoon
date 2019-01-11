@@ -2565,7 +2565,7 @@ class Entity(DirtyFieldsMixin, models.Model):
             .prefetch_related(
                 Prefetch(
                     'comments',
-                    queryset=Comment.objects.filter(Q(Q(locale=locale) | Q(locale__isnull=True))),
+                    queryset=Comment.objects.filter(Q(Q(locale=locale) | Q(locale__isnull=True))).order_by('date'),
                     to_attr='locale_comments',
                 )
             )
