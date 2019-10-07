@@ -12,7 +12,7 @@ class Migration(migrations.Migration):
 
     dependencies = [
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
-        ('base', '0140_project_resource_date_fields'),
+        ('base', '0144_remove_userprofile_use_translate_next'),
     ]
 
     operations = [
