@@ -28,7 +28,7 @@ type Props = {|
     user: UserState,
     index: number,
     deleteTranslation: (number) => void,
-    addComment: (string, number) => void,
+    addComment: (string, ?number) => void,
     updateEditorTranslation: (string, string) => void,
     updateTranslationStatus: (number, ChangeOperation) => void,
 |};
@@ -175,7 +175,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                 $commentCount={ commentCount }
             >
                 <button
-                    className='toggle-comments'
+                    className='toggle-comments active'
                     title='Toggle translation comments'
                     onClick={ this.toggleComments }
                 >
@@ -245,8 +245,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
             addComment,
         } = this.props;
 
-        // TODO: Uncomment as part of bug 1361318
-        // const commentCount = translation.comments.length;
+        const commentCount = translation.comments.length;
 
         // Does the currently logged in user own this translation?
         const ownTranslation = (
@@ -302,10 +301,9 @@ export class TranslationBase extends React.Component<InternalProps, State> {
 
                             { this.renderDiffToggle() }
 
-                            { (index === 0 || !canComment) ? null : <span className='divider'>&bull;</span> }
+                            { (index === 0 || (!canComment && commentCount === 0)) ? null : <span className='divider'>&bull;</span> }
 
-                            { /* TODO: Uncomment as part of bug 1361318 */}
-                            {/* { (!canComment && commentCount === 0) ? null : this.renderCommentToggle(commentCount) } */}
+                            { (!canComment && commentCount === 0) ? null : this.renderCommentToggle(commentCount) }
 
                             { (!translation.rejected || !canDelete ) ? null :
                                 // Delete Button
@@ -451,6 +449,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                 <CommentsList
                     comments={ translation.comments }
                     translation={ translation }
+                    user={ user }
                     canComment={ canComment }
                     addComment={ addComment }
                 />

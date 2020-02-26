@@ -86,6 +86,8 @@ resourceprogress-ResourceProgress--missing = Missing
 
 comments-AddComment--input =
     .placeholder = Write a comment…
+comments-AddComment--submit-button = <glyph></glyph>
+    .title = Submit comment
 
 
 ## Editor Menu
@@ -196,6 +198,8 @@ entitydetails-EntityNavigation--previous = <glyph></glyph>Previous
 
 entitydetails-Helpers--machinery = Machinery
 entitydetails-Helpers--locales = Locales
+entitydetails-Helpers--comments = Comments
+entitydetails-Helpers--no-comments = No comments available.
 
 
 ## Entity Details Metadata

@@ -29,15 +29,16 @@ export default function Comment(props: Props) {
         />
         <div className='container'>
             <div className='content' dir='auto'>
-                <a
-                    href={ `/contributors/${comment.username}` }
-                    target='_blank'
-                    rel='noopener noreferrer'
-                    onClick={ (e: SyntheticMouseEvent<>) => e.stopPropagation() }
-                >
-                    { comment.author }
-                </a>
                 <p>
+                    <a
+                        className='comment-author'
+                        href={ `/contributors/${comment.username}` }
+                        target='_blank'
+                        rel='noopener noreferrer'
+                        onClick={ (e: SyntheticMouseEvent<>) => e.stopPropagation() }
+                    >
+                        { comment.author }
+                    </a>
                     { comment.content }
                 </p>
             </div>
