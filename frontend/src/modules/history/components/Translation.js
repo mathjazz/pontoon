@@ -7,7 +7,6 @@ import { Localized } from '@fluent/react';
 import './Translation.css';
 
 import { TranslationProxy } from 'core/translation';
-import { CommentsList } from 'core/comments';
 import { UserAvatar } from 'core/user';
 import * as utils from 'core/utils';
 
@@ -28,7 +27,7 @@ type Props = {|
     user: UserState,
     index: number,
     deleteTranslation: (number) => void,
-    addComment: (string, ?number) => void,
+    openTranslationComments: (number) => void,
     updateEditorTranslation: (string, string) => void,
     updateTranslationStatus: (number, ChangeOperation) => void,
 |};
@@ -42,7 +41,6 @@ type InternalProps = {|
 
 type State = {|
     isDiffVisible: boolean,
-    isCommentVisible: boolean,
 |};
 
 
@@ -61,7 +59,6 @@ export class TranslationBase extends React.Component<InternalProps, State> {
 
         this.state = {
             isDiffVisible: false,
-            isCommentVisible: false,
         };
     }
 
@@ -146,11 +143,9 @@ export class TranslationBase extends React.Component<InternalProps, State> {
         </a>
     }
 
-    toggleComments = (event: SyntheticMouseEvent<>) => {
+    openTranslationComments = (event: SyntheticMouseEvent<>) => {
         event.stopPropagation();
-        this.setState((state) => {
-            return { isCommentVisible: !state.isCommentVisible };
-        });
+        this.props.openTranslationComments(this.props.translation.pk);
     }
 
     renderCommentToggle(commentCount: number) {
@@ -162,7 +157,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                     <button
                         className='toggle-comments'
                         title='Toggle translation comments'
-                        onClick={ this.toggleComments }
+                        onClick={ this.openTranslationComments }
                     >
                         { 'Comment' }
                     </button>
@@ -177,7 +172,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                 <button
                     className='toggle-comments active'
                     title='Toggle translation comments'
-                    onClick={ this.toggleComments }
+                    onClick={ this.openTranslationComments }
                 >
                     { `${commentCount} Comments` }
                 </button>
@@ -198,6 +193,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
 
         return <div
             className='comment-summary'
+            onClick={ this.openTranslationComments }
             title=''
         >
             <ul>
@@ -302,7 +298,6 @@ export class TranslationBase extends React.Component<InternalProps, State> {
             user,
             index,
             activeTranslation,
-            addComment,
         } = this.props;
 
         const commentCount = translation.comments.length;
@@ -506,15 +501,6 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                     </div>
                 </div>
             </Localized>
-            { !this.state.isCommentVisible ? null :
-                <CommentsList
-                    comments={ translation.comments }
-                    translation={ translation }
-                    user={ user }
-                    canComment={ canComment }
-                    addComment={ addComment }
-                />
-            }
         </li>;
     }
 }

@@ -21,12 +21,15 @@ import * as otherlocales from 'modules/otherlocales';
 import * as genericeditor from 'modules/genericeditor';
 import * as fluenteditor from 'modules/fluenteditor';
 import * as teamcomments from 'modules/teamcomments';
+import * as translationcomments from 'modules/translationcomments';
 import * as unsavedchanges from 'modules/unsavedchanges';
 import * as notification from 'core/notification';
 
 import EntityNavigation from './EntityNavigation';
 import Metadata from './Metadata';
 import Helpers from './Helpers';
+
+import { TranslationComments } from 'modules/translationcomments';
 
 import type { Entity } from 'core/api';
 import type { EditorState } from 'core/editor';
@@ -37,6 +40,7 @@ import type { ChangeOperation, HistoryState } from 'modules/history';
 import type { MachineryState } from 'modules/machinery';
 import type { LocalesState } from 'modules/otherlocales';
 import type { TeamCommentState } from 'modules/teamcomments';
+import type { TranslationCommentState } from 'modules/translationcomments';
 import type { UnsavedChangesState } from 'modules/unsavedchanges';
 
 
@@ -56,6 +60,7 @@ type Props = {|
     pluralForm: number,
     router: Object,
     selectedEntity: Entity,
+    translationcomments: TranslationCommentState,
     unsavedchanges: UnsavedChangesState,
     user: UserState,
 |};
@@ -94,6 +99,7 @@ export class EntityDetailsBase extends React.Component<InternalProps, State> {
         ) {
             this.updateFailedChecks();
             this.fetchHelpersData();
+            this.closeTranslationComments();
         }
     }
 
@@ -269,6 +275,18 @@ export class EntityDetailsBase extends React.Component<InternalProps, State> {
         ));
     }
 
+    openTranslationComments = (translation: number) => {
+        this.props.dispatch(
+            translationcomments.actions.open(translation)
+        );
+    }
+
+    closeTranslationComments = () => {
+        this.props.dispatch(
+            translationcomments.actions.reset()
+        );
+    }
+
     /*
      * This is a copy of EditorBase.updateTranslationStatus().
      * When changing this function, you probably want to change both.
@@ -336,25 +354,36 @@ export class EntityDetailsBase extends React.Component<InternalProps, State> {
                     locale={ state.locale }
                     user={ state.user }
                     deleteTranslation={ this.deleteTranslation }
-                    addComment={ this.addComment }
+                    openTranslationComments={ this.openTranslationComments }
                     updateTranslationStatus={ this.updateTranslationStatus }
                     updateEditorTranslation={ this.updateEditorTranslation }
                 />
             </section>
             <section className="third-column">
-                <Helpers
-                    entity={ state.selectedEntity }
-                    isReadOnlyEditor={ state.isReadOnlyEditor }
-                    locale={ state.locale }
-                    machinery={ state.machinery }
-                    otherlocales={ state.otherlocales }
-                    teamComments={ state.teamComments }
-                    addComment={ this.addComment }
-                    parameters={ state.parameters }
-                    user={ state.user }
-                    updateEditorTranslation={ this.updateEditorTranslation }
-                    searchMachinery={ this.searchMachinery }
-                />
+                { state.translationcomments.translation === null ?
+                    <Helpers
+                        entity={ state.selectedEntity }
+                        isReadOnlyEditor={ state.isReadOnlyEditor }
+                        locale={ state.locale }
+                        machinery={ state.machinery }
+                        otherlocales={ state.otherlocales }
+                        teamComments={ state.teamComments }
+                        addComment={ this.addComment }
+                        parameters={ state.parameters }
+                        user={ state.user }
+                        updateEditorTranslation={ this.updateEditorTranslation }
+                        searchMachinery={ this.searchMachinery }
+                    />
+                    :
+                    <TranslationComments
+                        addComment={ this.addComment }
+                        closeTranslationComments={ this.closeTranslationComments }
+                        entity={ state.selectedEntity }
+                        locale={ state.locale }
+                        user={ state.user }
+                        translation={ state.history.translations.find(t => t.pk === state.translationcomments.translation) }
+                    />
+                }
             </section>
         </section>;
     }
@@ -378,6 +407,7 @@ const mapStateToProps = (state: Object): Props => {
         pluralForm: plural.selectors.getPluralForm(state),
         router: state.router,
         selectedEntity: entities.selectors.getSelectedEntity(state),
+        translationcomments: state[translationcomments.NAME],
         unsavedchanges: state[unsavedchanges.NAME],
         user: state[user.NAME],
     };

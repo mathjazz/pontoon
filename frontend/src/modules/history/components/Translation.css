@@ -28,7 +28,7 @@
     border: 2px solid #5E6475;
 }
 
-.history .translation:hover .user-avatar img {
+.history .translation:not(.cannot-copy):hover .user-avatar img {
     border-color: #637283;
 }
 
@@ -193,6 +193,7 @@
     line-height: 0;
     margin: 9px 0 -6px;
     padding: 5px 10px;
+    pointer-events: auto;
     position: relative;
     transition: all 0.1s ease-out;
 }

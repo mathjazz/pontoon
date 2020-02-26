@@ -69,6 +69,7 @@ function createShallowEntityDetails(selectedEntity = SELECTED_ENTITY) {
         locale={ { code: 'kg' } }
         dispatch={ () => {} }
         user={ { settings: {} } }
+        translationcomments={ { translation: null } }
     />);
 }
 

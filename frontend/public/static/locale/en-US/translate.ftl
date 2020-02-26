@@ -597,11 +597,24 @@ search-TimeRangeFilter--edit-range = <glyph></glyph>Edit Range
 search-TimeRangeFilter--save-range = Save Range
 
 
+## Translation Comments
+## Shows translation comments popup
+
+translationcomments-TranslationComments--title =
+    { $commentCount ->
+        [one] <stress>{ $commentCount }</stress> Translation Comment
+       *[other] <stress>{ $commentCount }</stress> Translation Comments
+    }
+translationcomments-TranslationComments--close = ×
+    .aria-label = Close translation comments popup
+
+
 ## User Avatar
 ## Shows user Avatar with alt text
 
 user-UserAvatar--anon-alt-text = Anonymous User
 user-UserAvatar--alt-text = User Profile
+
 
 ## User Menu
 ## Shows user menu entries and options to sign in or out.
