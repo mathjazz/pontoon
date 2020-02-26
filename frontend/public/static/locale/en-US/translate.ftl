@@ -292,6 +292,14 @@ history-Translation--button-comments = { $commentCount ->
     }
     .title = Toggle translation comments
 
+history-Translation--comment-summary-count = { $commentCount ->
+        [one] { $commentCount } Comment
+       *[other] { $commentCount } Comments
+    }
+
+history-Translation--comment-summary-last-commented = Last commented <timeago></timeago>
+
+history-Translation--comment-summary-view-comments = View Comments <glyph></glyph>
 
 ## Interactive Tour
 ## Shows an interactive Tour on the "Tutorial" project,

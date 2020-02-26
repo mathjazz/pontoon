@@ -185,6 +185,66 @@ export class TranslationBase extends React.Component<InternalProps, State> {
         }
     }
 
+    renderCommentSummary() {
+        const comments = this.props.translation.comments;
+        const commentCount = comments.length;
+
+        if (commentCount === 0) {
+            return null;
+        }
+
+        const authors = [...new Set(comments.map(comment => comment.username))];
+        const lastComment = [...comments].pop();
+
+        return <div
+            className='comment-summary'
+            title=''
+        >
+            <ul>
+                { authors.map((author, index) => {
+                    const comment = comments.filter(comment => (comment.username === author))[0];
+                    return <li key={ index }>
+                        <UserAvatar
+                            username={ author }
+                            imageUrl={ comment.userGravatarUrlSmall }
+                        />
+                    </li>;
+                }) }
+            </ul>
+
+            <Localized
+                id='history-Translation--comment-summary-count'
+                $commentCount={ commentCount }
+            >
+                <span className='count'>
+                    { `${commentCount} Comments` }
+                </span>
+            </Localized>
+
+            <Localized
+                id='history-Translation--comment-summary-last-commented'
+                timeago={
+                    <ReactTimeAgo
+                        dir='ltr'
+                        date={ new Date(lastComment.dateIso) }
+                        title={ `${lastComment.createdAt} UTC` }
+                    />
+                }
+            >
+                <span className='last-commented'>{ 'Last commented <timeago></timeago>' }</span>
+            </Localized>
+
+            <Localized
+                id='history-Translation--comment-summary-view-comments'
+                glyph={
+                    <i className="fa fa-chevron-right fa-lg" />
+                }
+            >
+                <span className='view-comments'>{ 'View Comments <glyph></glyph>' }</span>
+            </Localized>
+        </div>;
+    }
+
     toggleDiff = (event: SyntheticMouseEvent<>) => {
         event.stopPropagation();
         this.setState((state) => {
@@ -442,6 +502,7 @@ export class TranslationBase extends React.Component<InternalProps, State> {
                                 format={ entity.format }
                             />
                         </p>
+                        { this.renderCommentSummary() }
                     </div>
                 </div>
             </Localized>
