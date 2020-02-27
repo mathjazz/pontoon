@@ -284,13 +284,7 @@ history-Translation--button-rejected =
     .title = Rejected
 
 history-Translation--button-comment = Comment
-    .title = Toggle translation comments
-
-history-Translation--button-comments = { $commentCount ->
-        [one] { $commentCount } Comment
-       *[other] { $commentCount } Comments
-    }
-    .title = Toggle translation comments
+    .title = Add translation comment
 
 history-Translation--comment-summary-count = { $commentCount ->
         [one] { $commentCount } Comment

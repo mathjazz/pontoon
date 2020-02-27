@@ -148,36 +148,19 @@ export class TranslationBase extends React.Component<InternalProps, State> {
         this.props.openTranslationComments(this.props.translation.pk);
     }
 
-    renderCommentToggle(commentCount: number) {
-        if (commentCount === 0) {
-            return <Localized
-                id='history-Translation--button-comment'
-                attrs={{ title: true }}
-            >
-                    <button
-                        className='toggle-comments'
-                        title='Toggle translation comments'
-                        onClick={ this.openTranslationComments }
-                    >
-                        { 'Comment' }
-                    </button>
-            </Localized>
-        }
-        else {
-            return <Localized
-                id='history-Translation--button-comments'
-                attrs={{ title: true }}
-                $commentCount={ commentCount }
-            >
+    renderCommentToggle() {
+        return <Localized
+            id='history-Translation--button-comment'
+            attrs={{ title: true }}
+        >
                 <button
-                    className='toggle-comments active'
-                    title='Toggle translation comments'
+                    className='toggle-comments'
+                    title='Add translation comment'
                     onClick={ this.openTranslationComments }
                 >
-                    { `${commentCount} Comments` }
+                    { 'Comment' }
                 </button>
-            </Localized>
-        }
+        </Localized>
     }
 
     renderCommentSummary() {
@@ -300,8 +283,6 @@ export class TranslationBase extends React.Component<InternalProps, State> {
             activeTranslation,
         } = this.props;
 
-        const commentCount = translation.comments.length;
-
         // Does the currently logged in user own this translation?
         const ownTranslation = (
             user && user.username &&
@@ -356,9 +337,9 @@ export class TranslationBase extends React.Component<InternalProps, State> {
 
                             { this.renderDiffToggle() }
 
-                            { (index === 0 || (!canComment && commentCount === 0)) ? null : <span className='divider'>&bull;</span> }
+                            { (index === 0 || !canComment) ? null : <span className='divider'>&bull;</span> }
 
-                            { (!canComment && commentCount === 0) ? null : this.renderCommentToggle(commentCount) }
+                            { !canComment ? null : this.renderCommentToggle() }
 
                             { (!translation.rejected || !canDelete ) ? null :
                                 // Delete Button
