@@ -423,6 +423,7 @@ PIPELINE_JS = {
     },
     "team": {
         "source_filenames": (
+            "js/lib/highcharts.js",
             "js/table.js",
             "js/progress-chart.js",
             "js/double_list_selector.js",

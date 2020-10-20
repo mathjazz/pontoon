@@ -1,3 +1,91 @@
+#insights .controls {
+    margin-bottom: 40px;
+}
+
+#insights li:first-child {
+    display: none;
+}
+
+#insights h3 {
+    color: #EBEBEB;
+    font-size: 20px;
+    font-style: normal;
+    font-weight: bold;
+    letter-spacing: normal;
+    margin-bottom: 30px;
+}
+
+#insights .half {
+    width: 470px;
+    float: left;
+}
+
+#insights .half:last-child {
+    float: right;
+}
+  
+#insights .block {
+    border-radius: 6px;
+    background: #333941;
+    margin-bottom: 40px;
+    padding: 30px;
+}
+ 
+#insights .active-users,
+#insights #review-lag-container {
+    height: 160px;
+}
+
+#insights .active-users {
+  float: left;
+  padding-right: 40px;
+  text-align: center;
+}
+
+#insights .active-users:last-child {
+  padding-right: 0;
+}
+
+#insights .active-users h3 {
+    font-size: 14px;
+    margin-bottom: 5px;
+}
+
+#insights .active-users h4 {
+    font-weight: 100;
+}
+
+#insights .active-users#contributors h4 {
+    color: #7BC876;
+}
+
+#insights .active-users#reviewers h4 {
+    color: #4fc4f6;
+}
+
+#insights .active-users#managers h4 {
+    color: #F36;
+}
+
+#insights .active-users .wrapper {
+    margin-bottom: 10px;
+    position: relative;
+}
+
+#insights .active-users .wrapper .active {
+    font-size: 40px;
+    font-weight: bold;
+    left: 0;
+    right: 0;
+    top: 28px;
+    margin: 0;
+    position: absolute;
+}
+
+#insights .highcharts-figure {
+  margin-bottom: 40px;
+}
+
 .buglist {
   display: none;
   table-layout: fixed;

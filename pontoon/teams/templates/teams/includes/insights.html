@@ -1,0 +1,407 @@
+{% import "contributors/widgets/contributor_list.html" as Contributors %}
+
+<div id="insights">
+    <menu class="controls contributors">
+        {{ Contributors.select_period(12, "#") }}
+    </menu>
+
+    <section class="static-data clearfix">
+        <section class="half">
+            <div class="block clearfix">
+                <h3 class="controls">Active users</h3>
+                <div id="managers" class="active-users">
+                    <div class="wrapper" data-active="2" data-all="5" data-color="#F36">
+                        <canvas class="chart" height="110" width="110"></canvas>
+                        <span class="active noselect"></span>
+                    </div>
+                    <h3>Managers</h3>
+                    <h4>(out of <span class="all"></span>)</h4>
+                </div>
+                <div id="contributors" class="active-users">
+                    <div class="wrapper" data-active="23" data-all="34" data-color="#7BC876">
+                        <canvas class="chart" height="110" width="110"></canvas>
+                        <span class="active noselect"></span>
+                    </div>
+                    <h3>Contributors</h3>
+                    <h4>(out of <span class="all"></span>)</h4>
+                </div>
+                <div id="reviewers" class="active-users">
+                    <div class="wrapper" data-active="7" data-all="8" data-color="#4fc4f6">
+                        <canvas class="chart" height="110" width="110"></canvas>
+                        <span class="active noselect"></span>
+                    </div>
+                    <h3>Reviewers</h3>
+                    <h4>(out of <span class="all"></span>)</h4>
+                </div>
+            </div>
+        </section>
+        <section class="half">
+            <div class="block clearfix">
+                <h3 class="controls">Unreviewed suggestion lifespan</h3>
+                <div id="review-lag-container"></div>
+            </div>
+        </section>
+    </section>
+
+    <section class="translation-activity">
+        <figure class="block highcharts-figure">
+            <h3 class="controls">Translation activity</h3>
+            <div id="translation-activity-container"></div>
+        </figure>
+    </section>
+
+    <section class="review-activity">
+        <figure class="block highcharts-figure">
+            <h3 class="controls">Review activity</h3>
+            <div id="review-activity-container"></div>
+        </figure>
+    </section>
+</div>
+
+<script>
+    $(function() {
+        $('#insights canvas.chart').each(function() {
+            var wrapper = $(this).parents('.wrapper');
+            var active = wrapper.data('active');
+            var all = wrapper.data('all');
+
+            // Update graph
+            var canvas = this;
+            var context = canvas.getContext('2d');
+
+            // Set up canvas to be HiDPI display ready
+            var dpr = window.devicePixelRatio || 1;
+            canvas.style.width = canvas.width + 'px';
+            canvas.style.height = canvas.height + 'px';
+            canvas.width = canvas.width * dpr;
+            canvas.height = canvas.height * dpr;
+
+            // Clear old canvas content to avoid aliasing
+            context.clearRect(0, 0, canvas.width, canvas.height);
+            context.lineWidth = 3 * dpr;
+
+            var x = canvas.width/2;
+            var y = canvas.height/2;
+            var radius = (canvas.width - context.lineWidth)/2;
+
+            var activeLength = active/all * 2;
+            var activeStart = -0.5;
+            var activeEnd = activeStart + activeLength;
+            plot(activeStart, activeEnd, wrapper.data('color'))
+
+            var inactiveLength = (all-active)/all * 2;
+            var inactiveStart = activeEnd;
+            var inactiveEnd = inactiveStart + inactiveLength;
+            plot(inactiveStart, inactiveEnd, '#5F7285')
+
+            // Update number
+            wrapper.find('.active').html(active).show();
+            wrapper.parent().find('.all').html(all).show();
+
+            function plot(start, end, color) {
+                context.beginPath();
+                context.arc(x, y, radius, start * Math.PI, end * Math.PI);
+                context.strokeStyle = color;
+                context.stroke();
+            }
+        });
+    });
+
+    Highcharts.chart('translation-activity-container', {
+        chart: {
+            backgroundColor: 'transparent',
+            spacing: [10, 0, 0, 0],
+            style: {
+                fontFamily: 'Open Sans',
+            },
+            zoomType: 'x',
+        },
+        colors: ['#7BC87666', '#7BC87633', '#5F7285', '#7BC876'],
+        title: null,
+        credits: {
+            enabled: false
+        },
+        xAxis: [{
+            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            crosshair: {
+                color: '#272A2F',
+            },
+            lineWidth: 0,
+            labels: {
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+        }],
+        yAxis: [{ // Secondary yAxis
+            title: {
+                text: 'Completion',
+                style: {
+                    color: '#FFF',
+                    fontWeight: 100,
+                    textTransform: 'uppercase',
+                },
+            },
+            labels: {
+                format: '{value}%',
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+            max: 100,
+            opposite: true,
+            gridLineWidth: 0,
+        }, { // Primary yAxis
+            title: {
+                text: 'Strings',
+                style: {
+                    color: '#FFF',
+                    fontWeight: 100,
+                    textTransform: 'uppercase',
+                },
+            },
+            labels: {
+                format: '{value}',
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+            gridLineWidth: 0,
+        }],
+        tooltip: {
+            backgroundColor: '#272A2F',
+            shared: true,
+            style: {
+                color: '#FFF',
+            }
+        },
+        legend: {
+            align: 'center',
+            itemStyle: {
+                color: '#FFF',
+                fontWeight: 700,
+            },
+        },
+        plotOptions: {
+            areaspline: {
+                fillColor: {
+                    linearGradient: [0, 0, 0, 250],
+                    stops: [
+                        [0, Highcharts.color('#7BC876').setOpacity(0.2).get('rgba')],
+                        [1, 'transparent']
+                    ],
+                },
+            },
+            column: {
+                borderWidth: 0,
+                stacking: 'normal',
+            }
+        },
+        series: [{
+            name: 'Human translations',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 112.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+            stack: 'Translations',
+        }, {
+            name: 'Machinery translations',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 112.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+            stack: 'Translations',
+        }, {
+            name: 'Added source strings',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 112.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+        }, {
+            name: 'Completion',
+            type: 'areaspline',
+            data: [97.0, 96.9, 99.5, 89.5, 98.2, 91.5, 95.2, 96.5, 93.3, 98.3, 93.9, 99.6],
+            tooltip: {
+                valueSuffix: '%',
+            },
+        }]
+    });
+</script>
+
+<script>
+    Highcharts.chart('review-activity-container', {
+        chart: {
+            backgroundColor: 'transparent',
+            spacing: [10, 0, 0, 0],
+            style: {
+                fontFamily: 'Open Sans',
+            },
+            zoomType: 'x',
+        },
+        colors: ['#4fc4f666', '#4fc4f633', '#F366', '#5F7285', '#4fc4f6'],
+        title: null,
+        credits: {
+            enabled: false
+        },
+        xAxis: [{
+            categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
+                'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            crosshair: {
+                color: '#272A2F',
+            },
+            lineWidth: 0,
+            labels: {
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+        }],
+        yAxis: [{ // Secondary yAxis
+            visible: false,
+        }, { // Primary yAxis
+            title: {
+                text: 'Suggestions',
+                style: {
+                    color: '#FFF',
+                    fontWeight: 100,
+                    textTransform: 'uppercase',
+                },
+            },
+            labels: {
+                format: '{value}',
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+            gridLineWidth: 0,
+        }],
+        tooltip: {
+            backgroundColor: '#272A2F',
+            shared: true,
+            style: {
+                color: '#FFF',
+            }
+        },
+        legend: {
+            align: 'center',
+            itemStyle: {
+                color: '#FFF',
+                fontWeight: 700,
+            },
+        },
+        plotOptions: {
+            areaspline: {
+                fillColor: {
+                    linearGradient: [0, 0, 0, 250],
+                    stops: [
+                        [0, Highcharts.color('#4fc4f6').setOpacity(0.5).get('rgba')],
+                        [1, 'transparent']
+                    ],
+                },
+            },
+            column: {
+                borderWidth: 0,
+                stacking: 'normal'
+            }
+        },
+        series: [{
+            name: 'Peer-approved',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+            stack: 'Reviews',
+        }, {
+            name: 'Self-approved',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+            stack: 'Reviews',
+        }, {
+            name: 'Rejected',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+            stack: 'Reviews',
+        }, {
+            name: 'Added',
+            type: 'column',
+            yAxis: 1,
+            data: [49.9, 71.5, 106.4, 129.2, 144.0, 176.0, 135.6, 148.5, 116.4, 104.1, 95.6, 54.4],
+        }, {
+            name: 'Unreviewed',
+            type: 'areaspline',
+            data: [97, 96, 99, 89, 98, 91, 95, 96, 93, 98, 93, 99],
+        }]
+    });
+</script>
+
+<script>
+    Highcharts.chart('review-lag-container', {
+        chart: {
+            backgroundColor: 'transparent',
+            height: 160,
+            spacing: [10, 0, 0, 0],
+            style: {
+                fontFamily: 'Open Sans',
+            },
+            zoomType: 'x',
+        },
+        colors: ['#4fc4f6'],
+        title: null,
+        credits: {
+            enabled: false
+        },
+        xAxis: [{
+            categories: ['J', 'F', 'M', 'A', 'M', 'J', 'J', 'A', 'S', 'O', 'N', 'D'],
+            lineWidth: 0,
+            labels: {
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+            },
+        }],
+        yAxis: [{
+            max: 100,
+            title: null,
+            labels: {
+                padding: 0,
+                style: {
+                    color: '#AAA',
+                    fontWeight: 100,
+                },
+                format: '{value} days',
+            },
+            gridLineWidth: 0,
+            opposite: true,
+        }],
+        tooltip: {
+            backgroundColor: '#272A2F',
+            shared: true,
+            style: {
+                color: '#FFF',
+            },
+            valueSuffix: ' days',
+        },
+        plotOptions: {
+            areaspline: {
+                fillColor: {
+                    linearGradient: [0, 0, 0, 130],
+                    stops: [
+                        [0, Highcharts.color('#4fc4f6').setOpacity(0.4).get('rgba')],
+                        [1, 'transparent']
+                    ],
+                },
+            }
+        },
+        series: [{
+            name: 'Unreviewed suggestion lifespan',
+            type: 'areaspline',
+            data: [85, 90, 70, 80, 90, 70, 50, 40, 60, 50, 60, 65],
+            showInLegend: false,
+        }]
+    });
+</script>

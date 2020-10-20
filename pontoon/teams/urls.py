@@ -19,6 +19,12 @@ urlpatterns = [
         views.team,
         name="pontoon.teams.contributors",
     ),
+    # Team insights
+    url(
+        r"^(?P<locale>[A-Za-z0-9\-\@\.]+)/insights/$",
+        views.team,
+        name="pontoon.teams.insights",
+    ),
     # Team bugs
     url(
         r"^(?P<locale>[A-Za-z0-9\-\@\.]+)/bugs/$", views.team, name="pontoon.teams.bugs"
@@ -50,6 +56,12 @@ urlpatterns = [
         r"^(?P<code>[A-Za-z0-9\-\@\.]+)/ajax/contributors/$",
         views.LocaleContributorsView.as_view(),
         name="pontoon.teams.ajax.contributors",
+    ),
+    # AJAX view: Team insights
+    url(
+        r"^(?P<locale>[A-Za-z0-9\-\@\.]+)/ajax/insights/$",
+        views.ajax_insights,
+        name="pontoon.teams.ajax.insights",
     ),
     # AJAX view: Team info
     url(

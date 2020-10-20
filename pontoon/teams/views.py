@@ -97,6 +97,14 @@ def ajax_projects(request, locale):
 
 
 @require_AJAX
+def ajax_insights(request, locale):
+    """Insights tab."""
+    locale = get_object_or_404(Locale, code=locale)
+
+    return render(request, "teams/includes/insights.html", {"locale": locale})
+
+
+@require_AJAX
 def ajax_info(request, locale):
     """Info tab."""
     locale = get_object_or_404(Locale, code=locale)
