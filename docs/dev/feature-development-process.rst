@@ -1,6 +1,12 @@
 Feature Development Process
 ===========================
 
+https://github.com/mozilla/pontoon/
+https://mozilla-pontoon.readthedocs.io/en/latest/index.html
+
+https://www.python.org/dev/peps/pep-0001/#submitting-a-pep
+https://www.python.org/dev/peps/pep-0012/#how-to-use-this-template
+
 Adding a new feature to Pontoon requires going through a process that is
 described in this document.
 
@@ -31,6 +37,10 @@ How to write a specification is still to be defined.
 
 -> Maybe: as a file in Pontoon, added via a PR that would be reviewed, and the 
 spec can evolve with the feature.
+
+-> We have a template now
+
+-> How to publicize the process to get more feedback?
 
 Bug(s)
 ------
