@@ -52,9 +52,6 @@ $(function () {
         // Re-apply notification filters
         $('.left-column .selected:not(.all) a').trigger('click');
       },
-      error: function () {
-        Pontoon.endLoader('Oops, something went wrong.', 'error');
-      },
     });
 
     self.NProgressBind();
