@@ -29,6 +29,7 @@ urlpatterns = [
     ),
     path("google-translate/", views.google_translate, name="pontoon.google_translate"),
     path("gpt-transform/", views.gpt_transform, name="pontoon.gpt_transform"),
+    path("gpt-autocomplete/", views.gpt_autocomplete, name="pontoon.gpt_autocomplete"),
     path(
         "microsoft-translator/",
         views.microsoft_translator,

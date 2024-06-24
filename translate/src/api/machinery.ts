@@ -148,7 +148,6 @@ export async function fetchGoogleTranslation(
 export async function fetchGPTTransform(
   englishText: string,
   translatedText: string,
-
   characteristic: string,
   locale: string,
 ): Promise<MachineryTranslation[]> {
@@ -177,6 +176,43 @@ export async function fetchGPTTransform(
     return [];
   } catch (error) {
     console.error('Error fetching GPT transformation:', error);
+    return [];
+  }
+}
+
+/**
+ * Return translation autocompletion by GPT-4.
+ */
+
+export async function fetchGPTAutocomplete(
+  partialTranslation: string,
+  original: string,
+  locale: string,
+): Promise<MachineryTranslation[]> {
+  const url = '/gpt-autocomplete/';
+  const params = {
+    partial: partialTranslation,
+    original: original,
+    locale: locale,
+  };
+
+  try {
+    const { translation } = (await GET_(url, params)) as {
+      translation: string;
+    };
+    if (translation) {
+      const cleanedTranslation = translation.replace(/^['"](.*)['"]$/, '$1');
+      return [
+        {
+          sources: ['gpt-transform'],
+          original: original,
+          translation: cleanedTranslation,
+        },
+      ];
+    }
+    return [];
+  } catch (error) {
+    console.error('Error fetching GPT Autocomplete:', error);
     return [];
   }
 }

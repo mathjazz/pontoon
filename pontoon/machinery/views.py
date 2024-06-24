@@ -202,6 +202,30 @@ def gpt_transform(request):
 
 
 @login_required(redirect_field_name="", login_url="/403")
+def gpt_autocomplete(request):
+    """
+    Autocomplete translation with a given:
+        - partial translation
+        - source string
+        - target language
+    """
+    try:
+        partial_translation = request.GET.get("partial")
+        source_string = request.GET.get("source")
+        target_language = request.GET.get("locale")
+
+        service = OpenAIService()
+        suggestion = service.autocomplete(
+            partial_translation, source_string, target_language
+        )
+
+        return JsonResponse({"suggestion": suggestion})
+
+    except Exception as e:
+        return JsonResponse({"status": False, "message": str(e)}, status=400)
+
+
+@login_required(redirect_field_name="", login_url="/403")
 def systran_translate(request):
     """Get translations from SYSTRAN machine translation service."""
     try:

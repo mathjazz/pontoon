@@ -12,6 +12,33 @@ class OpenAIService:
             raise ValueError("Missing OpenAI API key")
         self.client = OpenAI()
 
+    def autocomplete(self, partial_translation, source_string, target_language):
+        try:
+            target_language = Locale.objects.get(name=target_language)
+        except Locale.DoesNotExist:
+            raise ValueError(
+                f"The target language '{target_language}' is not supported."
+            )
+
+        system_message = textwrap.dedent(
+            f"""You will be provided with text in English, along with its partial translation into {target_language}. Your objective is to create a full translation into {target_language} that starts with a provided partial translation."""
+        )
+
+        user_prompt = f"Translate the original English text '{source_string}' into {target_language}. The translation must start with '{partial_translation}'."
+
+        # Call the OpenAI API with the constructed prompt
+        response = self.client.chat.completions.create(
+            model="gpt-4-0125-preview",
+            messages=[
+                {"role": "system", "content": system_message},
+                {"role": "user", "content": user_prompt},
+            ],
+            temperature=0,  # Set temperature to 0 for deterministic output
+            top_p=1,  # Set top_p to 1 to consider the full distribution
+        )
+
+        return response.choices[0].message.content.strip()
+
     def get_translation(
         self, english_text, translated_text, characteristic, target_language_name
     ):
