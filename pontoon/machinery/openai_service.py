@@ -26,6 +26,9 @@ class OpenAIService:
 
         user_prompt = f"Translate the original English text '{source_string}' into {target_language}. The translation must start with '{partial_translation}'."
 
+        print(system_message)
+        print(user_prompt)
+
         # Call the OpenAI API with the constructed prompt
         response = self.client.chat.completions.create(
             model="gpt-4-0125-preview",
@@ -36,6 +39,8 @@ class OpenAIService:
             temperature=0,  # Set temperature to 0 for deterministic output
             top_p=1,  # Set top_p to 1 to consider the full distribution
         )
+
+        print(response.choices[0])
 
         return response.choices[0].message.content.strip()
 

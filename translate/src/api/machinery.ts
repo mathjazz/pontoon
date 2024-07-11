@@ -192,21 +192,21 @@ export async function fetchGPTAutocomplete(
   const url = '/gpt-autocomplete/';
   const params = {
     partial: partialTranslation,
-    original: original,
+    source: original,
     locale: locale,
   };
 
   try {
-    const { translation } = (await GET_(url, params)) as {
-      translation: string;
+    const { suggestion } = (await GET_(url, params)) as {
+      suggestion: string;
     };
-    if (translation) {
-      const cleanedTranslation = translation.replace(/^['"](.*)['"]$/, '$1');
+    if (suggestion) {
+      const cleanedSuggestion = suggestion.replace(/^['"](.*)['"]$/, '$1');
       return [
         {
           sources: ['gpt-transform'],
           original: original,
-          translation: cleanedTranslation,
+          suggestion: cleanedSuggestion,
         },
       ];
     }

@@ -12,9 +12,13 @@ import React, {
   useState,
 } from 'react';
 
+import { fetchGPTAutocomplete } from '~/api/machinery';
+
 import { EditFieldHandle, EditorActions } from '~/context/Editor';
+import { useEntitySource } from '~/context/EntityView';
 import { Locale } from '~/context/Locale';
 import { useReadonlyEditor } from '~/hooks/useReadonlyEditor';
+import { getPlainMessage } from '~/utils/message';
 
 import { getExtensions, useKeyHandlers } from '../utils/editFieldExtensions';
 import { EntityView } from '~/context/EntityView';
@@ -40,9 +44,23 @@ export const EditField = memo(
       const locale = useContext(Locale);
       const readOnly = useReadonlyEditor();
       const { entity } = useContext(EntityView);
+      const source = useEntitySource();
       const { setResultFromInput } = useContext(EditorActions);
       const keyHandlers = useKeyHandlers();
       const [view, setView] = useState<EditorView | null>(null);
+
+      const autocompleteTranslation = async (editorContent: string) => {
+        const machineryTranslations = await fetchGPTAutocomplete(
+          editorContent,
+          getPlainMessage(source, entity.format),
+          locale.name,
+        );
+        if (machineryTranslations.length > 0) {
+            console.log(machineryTranslations[0].suggestion);
+            return machineryTranslations[0].suggestion;
+        }
+        return '';
+      };
 
       const initView = useCallback(
         (parent: HTMLDivElement | null) => {
@@ -65,6 +83,7 @@ export const EditField = memo(
                   }
                   if (update.docChanged) {
                     setResultFromInput(index, update.state.doc.toString());
+                    autocompleteTranslation(update.state.doc.toString());
                   }
                 }),
               );
