@@ -275,6 +275,15 @@ you create:
    A list of strings representing the host/domain names the site can serve.
    Defaults to ``.localhost, 127.0.0.1, [::1]``, should always be set in production.
 
+``CSRF_TRUSTED_ORIGINS``
+   A list of strings used by Django's CSRF protection. It should contain the domains
+   where the app is available. The setting also supports subdomains, so you could
+   add `https://*.example.com`, for example, to allow access from all
+   subdomains of `example.com`.
+
+   more details at:
+   https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-trusted-origins
+
 ``SSH_CONFIG``
    Contents of the ``~/.ssh/config`` file used when Pontoon connects to VCS
    servers via SSH. Used for disabling strict key checking and setting the
