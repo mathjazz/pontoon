@@ -100,6 +100,9 @@ you create:
    Maximum number of tasks a Celery worker process can execute before it’s
    replaced with a new one. Defaults to 20 tasks.
 
+``DATABASE_SSLMODE``
+   Optional. Controls if the database needs a secure connection with the app. Default value is `False`.
+
 ``DEFAULT_FROM_EMAIL``
    Optional. Default email address to send emails from. Default value:
    ``Pontoon <pontoon@hostname>``.
@@ -275,14 +278,16 @@ you create:
    A list of strings representing the host/domain names the site can serve.
    Defaults to ``.localhost, 127.0.0.1, [::1]``, should always be set in production.
 
+``SECURE_SSL_REDIRECT``
+   Optional. If True, redirects all non-HTTPS requests to HTTPS. Default value is `True`.
+   Learn more in the `Django documentation <https://docs.djangoproject.com/en/5.1/ref/settings/#secure-ssl-redirect>`_.
+
 ``CSRF_TRUSTED_ORIGINS``
    Optional. A list of trusted origins for unsafe requests. It should contain the domains
    where the app is available. The setting also supports subdomains, so you could
    add `https://*.example.com`, for example, to allow access from all
    subdomains of `example.com`. Default value is `[]`.
-
-   Learn more at:
-   https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-trusted-origins
+   Learn more in the `Django documentation <https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-trusted-origins>`_.
 
 ``SSH_CONFIG``
    Contents of the ``~/.ssh/config`` file used when Pontoon connects to VCS
