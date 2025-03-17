@@ -276,12 +276,12 @@ you create:
    Defaults to ``.localhost, 127.0.0.1, [::1]``, should always be set in production.
 
 ``CSRF_TRUSTED_ORIGINS``
-   A list of strings used by Django's CSRF protection. It should contain the domains
+   Optional. A list of trusted origins for unsafe requests. It should contain the domains
    where the app is available. The setting also supports subdomains, so you could
    add `https://*.example.com`, for example, to allow access from all
-   subdomains of `example.com`.
+   subdomains of `example.com`. Default value is `[]`.
 
-   more details at:
+   Learn more at:
    https://docs.djangoproject.com/en/5.1/ref/settings/#csrf-trusted-origins
 
 ``SSH_CONFIG``
