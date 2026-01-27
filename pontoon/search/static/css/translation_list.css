@@ -1,0 +1,53 @@
+#translation-list-header {
+  display: flex;
+  border-bottom: 1px solid var(--main-border-1);
+  padding: 10px 10px 10px 16px;
+}
+
+#translation-list {
+  color: var(--white-1);
+  line-height: 1.5;
+  font-size: 14px;
+  font-weight: 300;
+}
+
+#translation-list .translation-container {
+  padding: 16px;
+}
+
+#initial-section-container {
+  border-top: 1px solid var(--main-border-1);
+  font-size: 16px;
+  border-left: 8px solid var(--status-translated-alt);
+  padding-left: 8px;
+}
+
+#initial-section-container .source-string-container {
+  font-weight: bold;
+}
+
+.translation-info-container {
+  display: flex;
+}
+
+.translation-container .source-string-container {
+  margin-bottom: 16px;
+}
+
+.translation-info-container .locale-container,
+.translation-info-container .entity-info-container,
+.translation-info-container .utility-container {
+  flex: 1;
+}
+
+.locale-container {
+  font-style: italic;
+}
+
+.locale-container .translation-locale-name {
+  color: var(--light-grey-7);
+}
+
+.locale-container .translation-locale-code {
+  color: var(--status-translated-alt);
+}
