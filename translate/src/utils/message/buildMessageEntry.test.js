@@ -1,0 +1,54 @@
+import { buildMessageEntry } from './buildMessageEntry';
+import { getEmptyMessageEntry } from './getEmptyMessage';
+import { getPlaceholderMap } from './placeholders';
+import { parseEntry } from './parseEntry';
+import { serializeEntry } from './serializeEntry';
+import { pojoEquals } from '../pojo';
+
+const LOCALE = { code: 'en-US' };
+
+describe('buildMessageEntry', () => {
+  it('matches getEmptyMessageEntry when value is empty and placeholders map is non-empty', () => {
+    const base = parseEntry(
+      'android',
+      'Hello, {$arg1 :string @source=|%1$s|}!',
+    );
+    const placeholders = getPlaceholderMap(base.value);
+    expect(placeholders).not.toBeNull();
+
+    const result = buildMessageEntry(base, placeholders, [
+      { name: '', keys: [], value: '' },
+    ]);
+    const empty = getEmptyMessageEntry(base, LOCALE);
+
+    // serializeEntry() returns the same result for [] and [''], so using
+    // pojoEquals() in this test.
+    expect(pojoEquals(result, empty)).toBe(true);
+  });
+
+  it('replaces a placeholder in a non-empty value', () => {
+    const base = parseEntry(
+      'android',
+      'Hello, {$arg1 :string @source=|%1$s|}!',
+    );
+    const placeholders = getPlaceholderMap(base.value);
+
+    const result = buildMessageEntry(base, placeholders, [
+      { name: '', keys: [], value: 'Bonjour, %1$s!' },
+    ]);
+
+    expect(serializeEntry(result)).toEqual(
+      'Bonjour, {$arg1 :string @source=|%1$s|}!',
+    );
+  });
+
+  it('sets a simple value without placeholders', () => {
+    const base = parseEntry('android', 'Hello World');
+
+    const result = buildMessageEntry(base, null, [
+      { name: '', keys: [], value: 'Bonjour Monde' },
+    ]);
+
+    expect(serializeEntry(result)).toEqual('Bonjour Monde');
+  });
+});
