@@ -39,6 +39,18 @@ describe('buildMessageEntry', () => {
     );
   });
 
+  it('matches getEmptyMessageEntry when value is empty and placeholders map is null', () => {
+    const base = parseEntry('fluent', 'msg = Hello World\n');
+    expect(base).not.toBeNull();
+
+    const result = buildMessageEntry(base, null, [
+      { name: '', keys: [], value: '' },
+    ]);
+    const empty = getEmptyMessageEntry(base, LOCALE);
+
+    expect(result).toEqual(empty);
+  });
+
   it('sets a simple value without placeholders', () => {
     const base = parseEntry('android', 'Hello World');
 
