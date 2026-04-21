@@ -26,7 +26,7 @@ const mountMachinery = (translations, search) =>
       ]}
     >
       <MachineryTranslations.Provider
-        value={{ source: 'source', translations }}
+        value={{ fetching: false, source: 'source', translations }}
       >
         <SearchData.Provider
           value={{
@@ -76,5 +76,61 @@ describe('<Machinery>', () => {
   it('renders a reset button if a search query is present', () => {
     const { getByRole } = mountMachinery([], { input: 'test', query: 'test' });
     getByRole('button');
+  });
+
+  it('shows skeleton loader when machinery is fetching and no translations exist', () => {
+    const { getByTestId } = render(
+      <MockLocalizationProvider resources={[]}>
+        <MachineryTranslations.Provider
+          value={{ fetching: true, source: '', translations: [] }}
+        >
+          <SearchData.Provider
+            value={{
+              input: '',
+              query: '',
+              page: 1,
+              fetching: false,
+              results: [],
+              hasMore: false,
+              setInput: () => {},
+              getResults: () => {},
+            }}
+          >
+            <Machinery entity={{ pk: 42 }} />
+          </SearchData.Provider>
+        </MachineryTranslations.Provider>
+      </MockLocalizationProvider>,
+    );
+    getByTestId('machinery-skeleton-loader');
+  });
+
+  it('shows skeleton loader when machinery is fetching even if translations already exist', () => {
+    const { getByTestId } = render(
+      <MockLocalizationProvider resources={[]}>
+        <MachineryTranslations.Provider
+          value={{
+            fetching: true,
+            source: 'source',
+            translations: [{ original: '1', translation: 'one', sources: [] }],
+          }}
+        >
+          <SearchData.Provider
+            value={{
+              input: '',
+              query: '',
+              page: 1,
+              fetching: false,
+              results: [],
+              hasMore: false,
+              setInput: () => {},
+              getResults: () => {},
+            }}
+          >
+            <Machinery entity={{ pk: 42 }} />
+          </SearchData.Provider>
+        </MachineryTranslations.Provider>
+      </MockLocalizationProvider>,
+    );
+    getByTestId('machinery-skeleton-loader');
   });
 });
