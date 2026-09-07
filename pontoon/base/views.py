@@ -34,6 +34,7 @@ from django.views.generic.edit import FormView
 from pontoon.actionlog.models import ActionLog
 from pontoon.actionlog.utils import log_action
 from pontoon.base import forms, utils
+from pontoon.base.badge_utils import badges_review_level, badges_translation_level
 from pontoon.base.get_entities import (
     get_entities_for_project_locale,
     get_mismatched_filters,
@@ -71,7 +72,7 @@ from pontoon.base.user_utils import (
 from pontoon.checks.libraries import run_checks
 from pontoon.checks.utils import are_blocking_checks
 from pontoon.contributors.utils import users_with_translations_counts
-from pontoon.messaging.notifications import send_notification
+from pontoon.messaging.notifications import send_badge_notification, send_notification
 
 
 log = logging.getLogger(__name__)
@@ -1058,7 +1059,7 @@ def upload(request):
         project, locale
     ):
         return HttpResponseForbidden("You don't have permission to upload files.")
-    get_object_or_404(Resource, project=project, path=res_path)
+    resource = get_object_or_404(Resource, project=project, path=res_path)
 
     form = forms.UploadFileForm(request.POST, request.FILES)
     if form.is_valid():
@@ -1066,18 +1067,34 @@ def upload(request):
 
         upload = request.FILES["uploadfile"]
         try:
-            badge_name, badge_level = import_uploaded_file(
-                project, locale, res_path, upload, request.user
+            translation_before_level = badges_translation_level(request.user)
+            review_before_level = badges_review_level(request.user)
+            result = import_uploaded_file(
+                project, locale, resource, upload, request.user
             )
-            messages.success(request, "Translations updated from uploaded file.")
-            if badge_name:
-                message = json.dumps(
-                    {
-                        "name": badge_name,
-                        "level": badge_level,
-                    }
-                )
-                messages.info(request, message, extra_tags="badge")
+            summary = [f"{result.updated} updated", f"{result.unchanged} unchanged"]
+            if result.undefined:
+                summary.append(f"{result.undefined} not found in Pontoon")
+            message = f"Translations uploaded: {', '.join(summary)}."
+            if result.updated:
+                messages.success(request, message, extra_tags="upload")
+            else:
+                messages.info(request, message, extra_tags="upload")
+
+            badge_levels = (
+                (
+                    "Translation Champion",
+                    translation_before_level,
+                    badges_translation_level,
+                ),
+                ("Review Master", review_before_level, badges_review_level),
+            )
+            for badge_name, before_level, get_level in badge_levels:
+                after_level = get_level(request.user)
+                if after_level > before_level:
+                    send_badge_notification(request.user, badge_name, after_level)
+                    message = json.dumps({"name": badge_name, "level": after_level})
+                    messages.info(request, message, extra_tags="badge")
         except Exception as error:
             messages.error(request, str(error))
     else:
