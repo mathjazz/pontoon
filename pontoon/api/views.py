@@ -2,12 +2,15 @@ from datetime import datetime, timedelta
 from types import SimpleNamespace
 
 from django_filters.rest_framework import DjangoFilterBackend
-from rest_framework import generics
-from rest_framework.exceptions import PermissionDenied, ValidationError
+from drf_spectacular.utils import OpenApiResponse, extend_schema
+from rest_framework import generics, status
+from rest_framework.exceptions import APIException, PermissionDenied, ValidationError
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
+from django.core.exceptions import ValidationError as DjangoValidationError
+from django.db import IntegrityError, transaction
 from django.db.models import Prefetch, Q
 from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect
@@ -19,7 +22,9 @@ from pontoon.api.authentication import (
     PersonalAccessTokenAuthentication,
 )
 from pontoon.api.filters import TermFilter, TranslationMemoryFilter
+from pontoon.api.throttling import UPLOAD_THROTTLE_CLASSES
 from pontoon.base import forms
+from pontoon.base.badge_utils import badges_review_level, badges_translation_level
 from pontoon.base.get_entities import get_entities_for_project_locale
 from pontoon.base.models import (
     Entity,
@@ -29,9 +34,13 @@ from pontoon.base.models import (
     ProjectLocale,
     ProjectSlugHistory,
     Resource,
+    TranslatedResource,
     Translation,
     TranslationMemoryEntry,
 )
+from pontoon.base.services import readonly_exists
+from pontoon.base.user_utils import can_translate
+from pontoon.messaging.notifications import send_badge_notification
 from pontoon.pretranslation.pretranslate import get_pretranslation
 from pontoon.settings.base import PRETRANSLATION_API_MAX_CHARS
 from pontoon.terminology.models import (
@@ -42,6 +51,8 @@ from pontoon.translations.utils import parse_source_string_to_json
 
 from .serializers import (
     TRANSLATION_STATS_FIELDS,
+    UNDEFINED_KEYS_LIMIT,
+    UPLOAD_REQUEST_SCHEMA,
     EntitySearchSerializer,
     EntitySerializer,
     NestedEntitySerializer,
@@ -52,6 +63,7 @@ from .serializers import (
     NestedProjectSerializer,
     TermSerializer,
     TranslationMemorySerializer,
+    UploadTranslationsResponseSerializer,
 )
 
 
@@ -612,3 +624,124 @@ class PretranslationView(APIView):
             )
 
         return Response({"text": pretranslation[0], "author": pretranslation[1]})
+
+
+class UploadConflict(APIException):
+    status_code = status.HTTP_409_CONFLICT
+    default_detail = (
+        "A concurrent upload changed the same translations. Retry the request."
+    )
+
+
+class UploadTranslationsView(APIView):
+    authentication_classes = [PersonalAccessTokenAuthentication]
+    permission_classes = [IsAuthenticated]
+    throttle_classes = UPLOAD_THROTTLE_CLASSES
+    throttle_scope = "upload"
+
+    @extend_schema(
+        request={"multipart/form-data": UPLOAD_REQUEST_SCHEMA},
+        responses={
+            200: OpenApiResponse(
+                response=UploadTranslationsResponseSerializer,
+                description="Upload accepted. Reports the number of translations "
+                "updated and unchanged, and the keys not found in Pontoon.",
+            ),
+            400: OpenApiResponse(
+                description="Invalid parameters, or a file that is too large, "
+                "cannot be parsed, or contains no translations."
+            ),
+            403: OpenApiResponse(
+                description="Missing translate permission, or read-only project locale."
+            ),
+            404: OpenApiResponse(
+                description="Unknown or disabled project, unknown locale or resource, "
+                "or a project or resource not enabled for the locale."
+            ),
+            409: OpenApiResponse(
+                description="A concurrent upload changed the same translations."
+            ),
+            429: OpenApiResponse(description="Rate limit exceeded."),
+        },
+        description=(
+            "Update translations from an uploaded file, as the authenticated user. "
+            "Requires translator rights for the target locale, and a project locale "
+            "that is not read-only. The upload is additive: translations missing from "
+            "the file are left untouched, and strings identical to the current "
+            "translations are ignored, as are keys not found in Pontoon."
+        ),
+    )
+    def post(self, request):
+        from pontoon.sync.utils import UploadError, import_uploaded_file
+
+        form = forms.UploadTranslationsAPIForm(request.data, request.FILES)
+        if not form.is_valid():
+            raise ValidationError(form.errors)
+
+        code = form.cleaned_data["locale"]
+        project_slug = form.cleaned_data["project"]
+        res_path = form.cleaned_data["resource"]
+
+        locale = get_object_or_404(Locale, code=code)
+        project = get_object_or_404(
+            Project.objects.visible_for(request.user).available(), slug=project_slug
+        )
+
+        get_object_or_404(ProjectLocale, project=project, locale=locale)
+
+        if not can_translate(request.user, project, locale) or readonly_exists(
+            project, locale
+        ):
+            raise PermissionDenied("You don't have permission to upload files.")
+
+        resource = get_object_or_404(
+            Resource, project=project, path=res_path, obsolete=False
+        )
+        if not TranslatedResource.objects.filter(
+            resource=resource, locale=locale
+        ).exists():
+            raise Http404(f"{res_path} is not available for locale {code}.")
+
+        uploadfile = form.cleaned_data["uploadfile"]
+        try:
+            forms.validate_uploaded_file(uploadfile, res_path)
+        except DjangoValidationError as error:
+            raise ValidationError({"uploadfile": error.messages})
+
+        badge_levels_before = (
+            badges_translation_level(request.user),
+            badges_review_level(request.user),
+        )
+
+        try:
+            with transaction.atomic():
+                result = import_uploaded_file(
+                    project, locale, resource, uploadfile, request.user
+                )
+        except UploadError as error:
+            raise ValidationError({"uploadfile": [str(error)]})
+        except IntegrityError:
+            raise UploadConflict()
+
+        for (badge, get_level), before in zip(
+            (
+                ("Translation Champion", badges_translation_level),
+                ("Review Master", badges_review_level),
+            ),
+            badge_levels_before,
+        ):
+            after = get_level(request.user)
+            if after > before:
+                send_badge_notification(request.user, badge, after)
+
+        undefined_keys = [
+            list(key) for key in result.undefined_keys[:UNDEFINED_KEYS_LIMIT]
+        ]
+        return Response(
+            {
+                "updated": result.updated,
+                "unchanged": result.unchanged,
+                "undefined_keys": undefined_keys,
+                "undefined_keys_count": len(result.undefined_keys),
+            }
+        )

@@ -385,3 +385,55 @@ class EntitySearchSerializer(EntitySerializer):
         translation = obj.active_translations[0] if obj.active_translations else None
 
         return TranslationSerializer(translation, context=self.context).data
+
+
+# A serializer would document `uploadfile` as a plain string unless
+# `COMPONENT_SPLIT_REQUEST` is enabled for the whole API, so the request is described
+# with a raw OpenAPI schema here.
+UPLOAD_REQUEST_SCHEMA = {
+    "type": "object",
+    "description": (
+        "Translation file to import, with the project, locale and resource it targets."
+    ),
+    "properties": {
+        "project": {"type": "string", "description": "Project slug."},
+        "locale": {"type": "string", "description": "Locale code."},
+        "resource": {
+            "type": "string",
+            "description": "Resource path within the project.",
+        },
+        "uploadfile": {
+            "type": "string",
+            "format": "binary",
+            "description": (
+                "Translation file, in the same format as the target resource."
+            ),
+        },
+    },
+    "required": ["project", "locale", "resource", "uploadfile"],
+}
+
+
+# For large files, only report the first undefined keys, alongside
+# their total number.
+UNDEFINED_KEYS_LIMIT = 100
+
+
+class UploadTranslationsResponseSerializer(serializers.Serializer):
+    """Result of a translation file upload."""
+
+    updated = serializers.IntegerField(
+        help_text="Number of translations added or replaced by the upload."
+    )
+    unchanged = serializers.IntegerField(
+        help_text="Number of translations identical to the current ones, ignored."
+    )
+    undefined_keys = serializers.ListField(
+        child=serializers.ListField(child=serializers.CharField()),
+        help_text=f"Keys of translations with no matching entity in Pontoon, ignored. "
+        f"Truncated to the first {UNDEFINED_KEYS_LIMIT} keys.",
+    )
+    undefined_keys_count = serializers.IntegerField(
+        help_text="Total number of keys with no matching entity in Pontoon, "
+        "before truncation."
+    )
